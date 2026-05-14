@@ -24,6 +24,9 @@ PLATES = {
 
 MINIMUM_INCREMENT = PLATES.keys.min * 2
 
+# We don't need precise fractional plates for warmups, so this keeps things simple
+MINIMUM_WARMUP_INCREMENT = 5
+
 SETS = {
   SQUAT => {
     'sets' => 5,

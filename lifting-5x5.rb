@@ -29,12 +29,17 @@ def calculate_plates(weight)
   plates_needed
 end
 
-def sanitise_weight_to_lift(weight)
-  weight = (weight / MINIMUM_INCREMENT).round * MINIMUM_INCREMENT
+def minimise_plate_changes(previous_set_plates, target_set_plates)
+  # TODO implement this
+  target_set_plates
+end
+
+def sanitise_weight_to_lift(weight, minimum_increment)
+  weight = (weight / minimum_increment).floor * minimum_increment
   weight = [weight, BAR_WEIGHT].max
 
   while calculate_plates(weight) == nil
-    weight -= MINIMUM_INCREMENT
+    weight -= minimum_increment
   end
 
   weight
@@ -44,7 +49,7 @@ def calculate_warmup_sets(exercise, target_weight)
   warmup_sets = WARMUP_SETS[exercise]
 
   warmup_sets.map do |set|
-    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'])
+    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'], MINIMUM_WARMUP_INCREMENT)
 
     # Skip warmup sets that are just the bar, unless it's the first set with no multiplier as the weight is too light to be useful
     next if warmup_weight == BAR_WEIGHT && set['multiplier'] > 0
@@ -59,7 +64,7 @@ def calculate_warmup_sets(exercise, target_weight)
 end
 
 def calculate_workout(exercise, target_weight)
-  target_weight = sanitise_weight_to_lift(target_weight)
+  target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
 
   workout_sets = SETS[exercise]
 
@@ -96,8 +101,14 @@ workout.each do |exercise|
   print "Enter target weight for #{exercise} (kg): "
   target_weight = gets.chomp.to_f
   sets = calculate_workout(exercise, target_weight)
+
+  previous_set_plates = {}
+
   sets.each do |set|
-    plates = " | Plates per side: #{set['plates'].map { |plate, quantity| "#{quantity / 2} x #{plate} kg" }.join(', ')}" unless set['plates'].empty?
+    set_plates = minimise_plate_changes(previous_set_plates, set['plates'])
+    previous_set_plates = set_plates
+
+    plates = " | Plates per side: #{set['plates'].map { |plate, quantity| "#{quantity / 2} x #{plate} kg" }.join(', ')}" unless set_plates.empty?
     puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}"
   end
 end
