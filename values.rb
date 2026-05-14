@@ -4,9 +4,9 @@
 
 SQUAT = 'squat'
 BENCH_PRESS = 'bench press'
-DEADLIFT = 'deadlift'
 OVERHEAD_PRESS = 'overhead press'
 BARBELL_ROW = 'barbell row'
+DEADLIFT = 'deadlift'
 
 WORKOUT_A = [SQUAT, BENCH_PRESS, BARBELL_ROW].freeze
 WORKOUT_B = [SQUAT, OVERHEAD_PRESS, DEADLIFT].freeze
@@ -33,16 +33,16 @@ SETS = {
     'sets' => 5,
     'reps' => 5
   },
-  DEADLIFT => {
-    'sets' => 1,
-    'reps' => 5
-  },
   OVERHEAD_PRESS => {
     'sets' => 5,
     'reps' => 5
   },
   BARBELL_ROW => {
     'sets' => 5,
+    'reps' => 5
+  },
+  DEADLIFT => {
+    'sets' => 1,
     'reps' => 5
   }
 }.freeze
@@ -87,21 +87,6 @@ WARMUP_SETS = {
       'multiplier' => 0.9
     }
   ],
-  DEADLIFT => [
-    {
-      'sets' => 2,
-      'reps' => 5,
-      'multiplier' => 0.4
-    }, {
-      'sets' => 1,
-      'reps' => 3,
-      'multiplier' => 0.6
-    }, {
-      'sets' => 1,
-      'reps' => 2,
-      'multiplier' => 0.85
-    }
-  ],
   OVERHEAD_PRESS => [
     {
       'sets' => 2,
@@ -134,6 +119,21 @@ WARMUP_SETS = {
       'sets' => 1,
       'reps' => 2,
       'multiplier' => 0.9
+    }
+  ],
+  DEADLIFT => [
+    {
+      'sets' => 2,
+      'reps' => 5,
+      'multiplier' => 0.4
+    }, {
+      'sets' => 1,
+      'reps' => 3,
+      'multiplier' => 0.6
+    }, {
+      'sets' => 1,
+      'reps' => 2,
+      'multiplier' => 0.85
     }
   ]
 }.freeze
