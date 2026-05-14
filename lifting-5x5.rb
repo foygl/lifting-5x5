@@ -74,16 +74,19 @@ end
 puts 'Select workout:'
 puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
 puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
-workout_choice = gets.chomp.to_i
-workout = case workout_choice
-          when 1
-            WORKOUT_A
-          when 2
-            WORKOUT_B
-          else
-            puts 'Invalid choice. Defaulting to Workout A.'
-            WORKOUT_A
-          end
+while true
+  workout_choice = gets.chomp.to_i
+  workout = case workout_choice
+            when 1
+              WORKOUT_A
+            when 2
+              WORKOUT_B
+            else
+              puts 'Invalid choice. Please enter 1 or 2.'
+              next
+            end
+  break
+end
 
 puts
 puts "Selected workout: #{workout.join(', ')}"
