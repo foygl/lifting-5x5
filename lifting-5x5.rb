@@ -29,16 +29,22 @@ def calculate_plates(weight)
   plates_needed
 end
 
+def sanitise_weight_to_lift(weight)
+  weight = (weight / MINIMUM_INCREMENT).round * MINIMUM_INCREMENT
+  weight = [weight, BAR_WEIGHT].max
+
+  while calculate_plates(weight) == nil
+    weight -= MINIMUM_INCREMENT
+  end
+
+  weight
+end
+
 def calculate_warmup_sets(exercise, target_weight)
   warmup_sets = WARMUP_SETS[exercise]
 
   warmup_sets.map do |set|
-    warmup_weight = (target_weight * set['multiplier']).round(MINIMUM_INCREMENT)
-    warmup_weight = [warmup_weight, BAR_WEIGHT].max
-
-    while calculate_plates(warmup_weight) == nil
-      warmup_weight -= MINIMUM_INCREMENT
-    end
+    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'])
 
     # Skip warmup sets that are just the bar, unless it's the first set with no multiplier as the weight is too light to be useful
     next if warmup_weight == BAR_WEIGHT && set['multiplier'] > 0
@@ -46,29 +52,49 @@ def calculate_warmup_sets(exercise, target_weight)
     {
       'sets' => set['sets'],
       'reps' => set['reps'],
-      'weight' => warmup_weight,
+      'weight' => warmup_weight.to_f,
       'plates' => calculate_plates(warmup_weight)
     }
   end.compact
 end
 
 def calculate_workout(exercise, target_weight)
-  target_weight = target_weight.round(MINIMUM_INCREMENT)
-  target_weight = [target_weight, BAR_WEIGHT].max
-
-  while calculate_plates(target_weight) == nil
-    target_weight -= MINIMUM_INCREMENT
-  end
+  target_weight = sanitise_weight_to_lift(target_weight)
 
   workout_sets = SETS[exercise]
 
   calculate_warmup_sets(exercise, target_weight) + [{
     'sets' => workout_sets['sets'],
     'reps' => workout_sets['reps'],
-    'weight' => target_weight,
+    'weight' => target_weight.to_f,
     'plates' => calculate_plates(target_weight)
   }]
 end
 
-#puts calculate_plates(ARGV[0].to_f)
-puts calculate_workout(SQUAT, ARGV[0].to_f)
+puts 'Select workout:'
+puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
+puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
+workout_choice = gets.chomp.to_i
+workout = case workout_choice
+          when 1
+            WORKOUT_A
+          when 2
+            WORKOUT_B
+          else
+            puts 'Invalid choice. Defaulting to Workout A.'
+            WORKOUT_A
+          end
+
+puts
+puts "Selected workout: #{workout.join(', ')}"
+
+workout.each do |exercise|
+  puts
+  print "Enter target weight for #{exercise} (kg): "
+  target_weight = gets.chomp.to_f
+  sets = calculate_workout(exercise, target_weight)
+  sets.each do |set|
+    plates = " | Plates per side: #{set['plates'].map { |plate, quantity| "#{quantity / 2} x #{plate} kg" }.join(', ')}" unless set['plates'].empty?
+    puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}"
+  end
+end
