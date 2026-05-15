@@ -4,12 +4,24 @@
 
 require_relative 'values'
 
+# Monkey patch to calculate the difference/intersection between two arrays, taking into account duplicates
+class Array
+  def difference(other)
+    h = other.each_with_object(Hash.new(0)) { |e,h| h[e] += 1  }
+    reject { |e| h[e] > 0 && h[e] -= 1 }
+  end
+
+  def intersection(other)
+    h = other.each_with_object(Hash.new(0)) { |e,h| h[e] += 1  }
+    select { |e| h[e] > 0 && h[e] -= 1 }
+  end
+end
+
 def minimise_plate_changes(sets)
-  # TODO implement this
-  #sets.each do |set|
-  #  puts "Calculating combinations for weight #{set['weight']} with plates #{set['plates']}"
-  #  pp calculate_all_plate_combinations(set['plates'])
-  #end
+  sets.each do |set|
+    set['valid_plate_combinations'] = calculate_all_plate_combinations(set['plates'])
+  end
+  calculate_all_plate_changes(sets)
   sets
 end
 
@@ -44,3 +56,26 @@ def calculate_plate_combinations(plates, target_weight)
   (with_first + without_first).uniq
 end
 
+def calculate_all_plate_changes(sets)
+  sets.each_with_index do |set, index|
+    if index > 0
+      previous_set = sets[index - 1]
+      previous_set['valid_plate_combinations'].each_with_index do |previous_combination, previous_combination_idx|
+        set['valid_plate_combinations'].each_with_index do |current_combination, current_combination_idx|
+          set['plate_changes'] ||= {}
+          set['plate_changes'][previous_combination_idx] ||= {}
+          set['plate_changes'][previous_combination_idx][current_combination_idx] = calculate_plate_changes(previous_combination, current_combination)
+        end
+      end
+    end
+  end
+end
+
+def calculate_plate_changes(current_plates, target_plates)
+  shared_plates = current_plates.intersection(target_plates)
+  current_plates_diff = current_plates.difference(shared_plates)
+  target_plates_diff = target_plates.difference(shared_plates)
+
+  # The number of plates that would have to be put on or taken off
+  target_plates_diff.length + current_plates_diff.length
+end
