@@ -22,6 +22,7 @@ def minimise_plate_changes(sets)
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['plates'])
   end
   calculate_all_plate_changes(sets)
+  pp build_plate_change_tree(sets)
   sets
 end
 
@@ -78,4 +79,21 @@ def calculate_plate_changes(current_plates, target_plates)
 
   # The number of plates that would have to be put on or taken off
   target_plates_diff.length + current_plates_diff.length
+end
+
+def build_plate_change_tree(sets, tree = {}, path_value = 0)
+  # TODO: Implement me
+#  return path_value if sets.empty?
+#
+#  current_set = sets.first
+#  remaining_sets = sets[1..]
+#
+#  return build_plate_change_tree(remaining_sets) unless current_set.key?('plate_changes')
+#
+#  current_set['plate_changes'].each do |previous_combination_idx, changes|
+#    tree[previous_combination_idx] ||= {}
+#    changes.each do |current_combination_idx, change_count|
+#      puts build_plate_change_tree(remaining_sets, tree[previous_combination_idx][current_combination_idx] ||= {}, path_value + change_count)
+#    end
+#  end
 end
