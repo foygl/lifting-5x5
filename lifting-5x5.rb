@@ -2,6 +2,7 @@
 
 # frozen_string_literal: true
 
+require_relative 'plate_change_minimiser'
 require_relative 'values'
 
 def calculate_plates(weight)
@@ -27,11 +28,6 @@ def calculate_plates(weight)
   end
 
   plates_needed
-end
-
-def minimise_plate_changes(previous_set_plates, target_set_plates)
-  # TODO implement this
-  target_set_plates
 end
 
 def sanitise_weight_to_lift(weight, minimum_increment)
@@ -68,12 +64,14 @@ def calculate_workout(exercise, target_weight)
 
   workout_sets = SETS[exercise]
 
-  calculate_warmup_sets(exercise, target_weight) + [{
-    'sets' => workout_sets['sets'],
-    'reps' => workout_sets['reps'],
-    'weight' => target_weight.to_f,
-    'plates' => calculate_plates(target_weight)
-  }]
+  minimise_plate_changes(
+    calculate_warmup_sets(exercise, target_weight) + [{
+      'sets' => workout_sets['sets'],
+      'reps' => workout_sets['reps'],
+      'weight' => target_weight.to_f,
+      'plates' => calculate_plates(target_weight)
+    }]
+  )
 end
 
 puts 'Select workout:'
@@ -102,13 +100,8 @@ workout.each do |exercise|
   target_weight = gets.chomp.to_f
   sets = calculate_workout(exercise, target_weight)
 
-  previous_set_plates = {}
-
   sets.each do |set|
-    set_plates = minimise_plate_changes(previous_set_plates, set['plates'])
-    previous_set_plates = set_plates
-
-    plates = " | Plates per side: #{set['plates'].map { |plate, quantity| "#{quantity / 2} x #{plate} kg" }.join(', ')}" unless set_plates.empty?
+    plates = " | Plates per side: #{set['plates'].map { |plate, quantity| "#{quantity / 2} x #{plate} kg" }.join(', ')}" unless set['plates'].empty?
     puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}"
   end
 end
