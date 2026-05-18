@@ -7,6 +7,8 @@ require_relative 'values'
 # Used for testing
 PRUNE_TREE = true
 
+DEBUG = false
+
 # Monkey patch to calculate the difference/intersection between two arrays, taking into account duplicates
 class Array
   def difference(other)
@@ -24,9 +26,9 @@ def minimise_plate_changes(sets)
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
   end
-  pp sets
+  pp sets if DEBUG
   tree = build_plate_change_tree(sets).first
-  pp tree
+  pp tree if DEBUG
   sets.each_with_index do |set, index|
     # Just pick the first valid minimum path if there are multiple with the same value
     set['plates'] = set['valid_plate_combinations'][tree.keys.first]
@@ -34,6 +36,10 @@ def minimise_plate_changes(sets)
     # We don't need this anymore as we have calculated the best plate combination
     set.delete('valid_plate_combinations')
   end
+
+  # Should have traversed the whole tree at this point and so "tree" should be a leaf
+  raise "Invalid plate change tree generated" unless tree.is_a?(Float) || tree.is_a?(Integer)
+
   sets
 end
 
@@ -149,7 +155,7 @@ end
 # }
 # And the pruned tree would look like:
 # {0 => {0 => {2 => 3}}}
-def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination = [], path_value = 0)
+def build_plate_change_tree(sets, branch_number = nil, previous_plate_combination = [], path_value = 0)
   current_set = sets.first
   remaining_sets = sets[1..]
 
@@ -182,13 +188,21 @@ def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination 
       subtree = subtrees.map(&:first).reduce(:merge)
     end
 
-    [{ branch_number => subtree }, min_value]
+    if branch_number.nil?
+      [subtree, min_value]
+    else
+      [{ branch_number => subtree }, min_value]
+    end
   elsif remaining_sets.empty?
     # This will be an empty bar set that is also the last set
     # Setting the current branch number to 0 as there is only one option for the plate combination (no plates)
-    [{ branch_number => { 0 => path_value } }, path_value]
+    if branch_number.nil?
+      [{ 0 => path_value }, path_value]
+    else
+      [{ branch_number => { 0 => path_value } }, path_value]
+    end
   else
     # This will be an empty bar set which has no plates
-    build_plate_change_tree(remaining_sets, branch_number, [], path_value)
+    build_plate_change_tree(remaining_sets, 0, [], path_value)
   end
 end

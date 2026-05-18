@@ -4,6 +4,7 @@
 
 require_relative 'plate_change_minimiser'
 
+DEBUG = true
 
 test1 = [{"weight" => 15.0},
          {"weight" => 40.0},
@@ -42,6 +43,17 @@ test4 = [{"weight" => 15.0}]
 
 test4_expected = [{"weight" => 15.0, "plates" => {}}]
 
+test5 = [{"weight" => 20.0},
+         {"weight" => 25.0},
+         {"weight" => 30.0}]
+
+test5_expected = [{"weight" => 20.0, "plates" => [2.5]},
+                  {"weight" => 25.0, "plates" => [2.5, 2.5]},
+                  {"weight" => 30.0, "plates" => [2.5, 2.5, 1.25, 1.25]}]
+
+test6 = [{"weight" => 15.0},
+         {"weight" => 15.0}]
+
 puts "Example 1:"
 pp minimise_plate_changes(test1)
 puts
@@ -53,6 +65,12 @@ pp minimise_plate_changes(test3)
 puts
 puts "Example 4:"
 pp minimise_plate_changes(test4)
+puts
+puts "Example 5:"
+pp minimise_plate_changes(test5)
+puts
+puts "Example 6:"
+pp minimise_plate_changes(test6)
 puts
 
 #calculate_all_plate_combinations test1.last['plates']
