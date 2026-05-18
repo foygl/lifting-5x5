@@ -22,16 +22,24 @@ end
 
 def minimise_plate_changes(sets)
   sets.each do |set|
-    set['valid_plate_combinations'] = calculate_all_plate_combinations(set['plates'])
+    set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
   end
-  tree = build_plate_change_tree(sets)
+  pp sets
+  tree = build_plate_change_tree(sets).first
   pp tree
+  sets.each_with_index do |set, index|
+    # Just pick the first valid minimum path if there are multiple with the same value
+    set['plates'] = set['valid_plate_combinations'][tree.keys.first]
+    tree = tree.values.first
+    # We don't need this anymore as we have calculated the best plate combination
+    set.delete('valid_plate_combinations')
+  end
   sets
 end
 
-def calculate_all_plate_combinations(plates)
+def calculate_all_plate_combinations(weight)
   # For this calculation, consider just half the weight, since the same plates will be on both sides of the bar
-  plate_weight = plates.map { |weight, count| weight * (count / 2) }.sum
+  plate_weight = (weight - BAR_WEIGHT) / 2
   @available_plates ||= PLATES.map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
 
   calculate_plate_combinations(@available_plates, plate_weight)
@@ -66,8 +74,9 @@ def calculate_plate_changes(current_plates, target_plates)
   current_plates_diff = current_plates.difference(shared_plates)
   target_plates_diff = target_plates.difference(shared_plates)
 
-  # The number of plates that would have to be put on or taken off
-  target_plates_diff.length + current_plates_diff.length
+  # The number of plates that would have to be put on or taken off will be prioritised
+  # The total weight of plates that would have to be put on or taken off will be used as a tiebreaker
+  (target_plates_diff.length + current_plates_diff.length).to_f * 10**6 + (target_plates_diff.sum + current_plates_diff.sum)
 end
 
 # If the input sets are:
@@ -88,7 +97,7 @@ end
 #     [10, 5, 5, 2.5],
 #     [10, 5, 5, 1.25, 1.25],
 #     [10, 5, 2.5, 2.5, 1.25, 1.25]]}]
-# Then the tree would look like:
+# Then the (unpruned) tree would look like:
 # {
 #   0 => {
 #     0 => {
@@ -138,6 +147,8 @@ end
 #     }
 #   },
 # }
+# And the pruned tree would look like:
+# {0 => {0 => {2 => 3}}}
 def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination = [], path_value = 0)
   current_set = sets.first
   remaining_sets = sets[1..]
@@ -174,7 +185,8 @@ def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination 
     [{ branch_number => subtree }, min_value]
   elsif remaining_sets.empty?
     # This will be an empty bar set that is also the last set
-    [{ branch_number => path_value }, path_value]
+    # Setting the current branch number to 0 as there is only one option for the plate combination (no plates)
+    [{ branch_number => { 0 => path_value } }, path_value]
   else
     # This will be an empty bar set which has no plates
     build_plate_change_tree(remaining_sets, branch_number, [], path_value)

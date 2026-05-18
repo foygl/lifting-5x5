@@ -5,11 +5,11 @@
 require_relative 'plate_change_minimiser'
 
 
-test1 = [{"weight" => 15.0, "plates" => {}},
-         {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
-         {"weight" => 60.0, "plates" => {20 => 2, 2.5 => 2}},
-         {"weight" => 80.0, "plates" => {20 => 2, 10 => 2, 2.5 => 2}},
-         {"weight" => 100.0, "plates" => {20 => 2, 10 => 4, 2.5 => 2}}]
+test1 = [{"weight" => 15.0},
+         {"weight" => 40.0},
+         {"weight" => 60.0},
+         {"weight" => 80.0},
+         {"weight" => 100.0}]
 
 test1_expected = [{"weight" => 15.0, "plates" => {}},
                   {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
@@ -18,23 +18,29 @@ test1_expected = [{"weight" => 15.0, "plates" => {}},
                   {"weight" => 100.0, "plates" => {20 => 2, 10 => 4, 2.5 => 2}}]
 
 
-test2 = [{"weight" => 15.0, "plates" => {}},
-         {"weight" => 20.0, "plates" => {2.5 => 2}},
-         {"weight" => 30.0, "plates" => {5 => 2, 2.5 => 2}},
-         {"weight" => 45.0, "plates" => {10 => 2, 5 => 2}},
-         {"weight" => 56.5, "plates" => {20 => 2, 0.25 => 6}}]
+test2 = [{"weight" => 15.0},
+         {"weight" => 20.0},
+         {"weight" => 30.0},
+         {"weight" => 45.0},
+         {"weight" => 56.5}]
 
-test3 = [{"weight" => 15.0, "plates" => {}},
-         {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
-         {"weight" => 60.0, "plates" => {20 => 2, 2.5 => 2}}]
+test2_expected = [{"weight" => 15.0, "plates" => {}},
+                  {"weight" => 20.0, "plates" => {2.5 => 2}},
+                  {"weight" => 30.0, "plates" => {5 => 2, 2.5 => 2}},
+                  {"weight" => 45.0, "plates" => {10 => 2, 5 => 2}},
+                  {"weight" => 56.5, "plates" => {10 => 2, 5 => 4, 0.25 => 6}}]
 
-test4 = [{"weight" => 15.0, "plates" => {}}]
+test3 = [{"weight" => 15.0},
+         {"weight" => 40.0},
+         {"weight" => 60.0}]
 
-#test2_expected = [{"weight" => 15.0, "plates" => {}},
-#                  {"weight" => 20.0, "plates" => {2.5 => 2}},
-#                  {"weight" => 30.0, "plates" => {5 => 2, 2.5 => 2}},
-#                  {"weight" => 45.0, "plates" => {5 => 4, 2.5 => 4}},
-#                  {"weight" => 56.5, "plates" => {20 => 2, 0.25 => 6}}]
+test3_expected = [{"weight" => 15.0, "plates" => {}},
+                  {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
+                  {"weight" => 60.0, "plates" => {10 => 4, 2.5 => 2}}]
+
+test4 = [{"weight" => 15.0}]
+
+test4_expected = [{"weight" => 15.0, "plates" => {}}]
 
 puts "Example 1:"
 pp minimise_plate_changes(test1)

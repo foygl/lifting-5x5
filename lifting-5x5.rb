@@ -5,30 +5,30 @@
 require_relative 'plate_change_minimiser'
 require_relative 'values'
 
-#def calculate_plates(weight)
-#  if weight < BAR_WEIGHT
-#    puts "Weight must be greater than or equal to #{BAR_WEIGHT} kg."
-#    return nil
-#  end
-#
-#  remaining_weight = weight - BAR_WEIGHT
-#  plates_needed = {}
-#
-#  PLATES.sort.reverse.each do |plate_weight, quantity|
-#    break if remaining_weight <= 0
-#
-#    plates_to_use = [quantity, 2 * (remaining_weight / (2 * plate_weight)).floor].min
-#    plates_needed[plate_weight] = plates_to_use if plates_to_use > 0
-#    remaining_weight -= plates_to_use * plate_weight
-#  end
-#
-#  if remaining_weight > 0
-#    puts "Cannot achieve the desired weight with the available plates for weight #{weight}."
-#    return nil
-#  end
-#
-#  plates_needed
-#end
+def calculate_plates(weight)
+  if weight < BAR_WEIGHT
+    puts "Weight must be greater than or equal to #{BAR_WEIGHT} kg."
+    return nil
+  end
+
+  remaining_weight = weight - BAR_WEIGHT
+  plates_needed = {}
+
+  PLATES.sort.reverse.each do |plate_weight, quantity|
+    break if remaining_weight <= 0
+
+    plates_to_use = [quantity, 2 * (remaining_weight / (2 * plate_weight)).floor].min
+    plates_needed[plate_weight] = plates_to_use if plates_to_use > 0
+    remaining_weight -= plates_to_use * plate_weight
+  end
+
+  if remaining_weight > 0
+    puts "Cannot achieve the desired weight with the available plates for weight #{weight}."
+    return nil
+  end
+
+  plates_needed
+end
 
 def sanitise_weight_to_lift(weight, minimum_increment)
   weight = (weight / minimum_increment).floor * minimum_increment
@@ -53,8 +53,7 @@ def calculate_warmup_sets(exercise, target_weight)
     {
       'sets' => set['sets'],
       'reps' => set['reps'],
-      'weight' => warmup_weight.to_f,
-      #'plates' => calculate_plates(warmup_weight)
+      'weight' => warmup_weight.to_f
     }
   end.compact
 end
@@ -68,8 +67,7 @@ def calculate_workout(exercise, target_weight)
     calculate_warmup_sets(exercise, target_weight) + [{
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
-      'weight' => target_weight.to_f,
-      #'plates' => calculate_plates(target_weight)
+      'weight' => target_weight.to_f
     }]
   )
 end
@@ -101,7 +99,7 @@ workout.each do |exercise|
   sets = calculate_workout(exercise, target_weight)
 
   sets.each do |set|
-    plates = " | Plates per side: #{set['plates'].map { |plate, quantity| "#{quantity / 2} x #{plate} kg" }.join(', ')}" unless set['plates'].empty?
+    plates = " | Plates per side: #{set['plates'].map { |plate| "#{plate} kg" }.join(', ')}" unless set['plates'].empty?
     puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}"
   end
 end
