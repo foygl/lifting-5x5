@@ -4,6 +4,9 @@
 
 require_relative 'values'
 
+# Used for testing
+PRUNE_TREE = true
+
 # Monkey patch to calculate the difference/intersection between two arrays, taking into account duplicates
 class Array
   def difference(other)
@@ -21,7 +24,8 @@ def minimise_plate_changes(sets)
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['plates'])
   end
-  pp build_plate_change_tree(sets)
+  tree = build_plate_change_tree(sets)
+  pp tree
   sets
 end
 
@@ -145,10 +149,10 @@ def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination 
   valid_plate_combinations = current_set['valid_plate_combinations']
 
   if !valid_plate_combinations.flatten.empty?
-    subtree = valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
+    subtrees = valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
       change_value = calculate_plate_changes(previous_plate_combination, plate_combination)
       if remaining_sets.empty?
-        { current_branch_number => path_value + change_value }
+        [{ current_branch_number => path_value + change_value }, path_value + change_value]
       else
         build_plate_change_tree(
           remaining_sets,
@@ -157,19 +161,20 @@ def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination 
           path_value + change_value
         )
       end
-    end.reduce(:merge)
-
-    # If there are no remaining sets prune away all but the best paths from the leaf nodes to simplify
-    # later best path calculations
-    if remaining_sets.empty?
-      min_value = subtree.values.min
-      subtree.select! { |_, value| value == min_value }
     end
 
-    { branch_number => subtree }
+    # Prune the tree as we build it to only include the path(s) with the lowest total plate change value
+    min_value = subtrees.map(&:last).min
+    if PRUNE_TREE
+      subtree = subtrees.select { |_, value| value == min_value }.map(&:first).reduce(:merge)
+    else
+      subtree = subtrees.map(&:first).reduce(:merge)
+    end
+
+    [{ branch_number => subtree }, min_value]
   elsif remaining_sets.empty?
     # This will be an empty bar set that is also the last set
-    { branch_number => path_value }
+    [{ branch_number => path_value }, path_value]
   else
     # This will be an empty bar set which has no plates
     build_plate_change_tree(remaining_sets, branch_number, [], path_value)
