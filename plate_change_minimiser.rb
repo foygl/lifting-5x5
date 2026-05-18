@@ -21,7 +21,6 @@ def minimise_plate_changes(sets)
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['plates'])
   end
-  calculate_all_plate_changes(sets)
   pp build_plate_change_tree(sets)
   sets
 end
@@ -32,8 +31,6 @@ def calculate_all_plate_combinations(plates)
   @available_plates ||= PLATES.map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
 
   combinations = calculate_plate_combinations(@available_plates, plate_weight)
-
-  # pp combinations
 end
 
 def calculate_plate_combinations(plates, target_weight)
@@ -57,21 +54,6 @@ def calculate_plate_combinations(plates, target_weight)
   (with_first + without_first).uniq
 end
 
-def calculate_all_plate_changes(sets)
-  sets.each_with_index do |set, index|
-    if index > 0
-      previous_set = sets[index - 1]
-      previous_set['valid_plate_combinations'].each_with_index do |previous_combination, previous_combination_idx|
-        set['valid_plate_combinations'].each_with_index do |current_combination, current_combination_idx|
-          set['plate_changes'] ||= {}
-          set['plate_changes'][previous_combination_idx] ||= {}
-          set['plate_changes'][previous_combination_idx][current_combination_idx] = calculate_plate_changes(previous_combination, current_combination)
-        end
-      end
-    end
-  end
-end
-
 def calculate_plate_changes(current_plates, target_plates)
   shared_plates = current_plates.intersection(target_plates)
   current_plates_diff = current_plates.difference(shared_plates)
@@ -89,9 +71,7 @@ end
 #    [10, 1.25, 1.25],
 #    [5, 5, 2.5],
 #    [5, 5, 1.25, 1.25],
-#    [5, 2.5, 2.5, 1.25, 1.25]],
-#   "plate_changes" =>
-#    {0 => {0 => 2, 1 => 3, 2 => 3, 3 => 4, 4 => 5}}},
+#    [5, 2.5, 2.5, 1.25, 1.25]]},
 #  {"weight" => 60.0,
 #   "valid_plate_combinations" =>
 #    [[20, 2.5],
@@ -100,13 +80,7 @@ end
 #     [10, 10, 1.25, 1.25],
 #     [10, 5, 5, 2.5],
 #     [10, 5, 5, 1.25, 1.25],
-#     [10, 5, 2.5, 2.5, 1.25, 1.25]],
-#   "plate_changes" =>
-#    {0 => {0 => 2, 1 => 5, 2 => 1, 3 => 4, 4 => 2, 5 => 5, 6 => 4},
-#     1 => {0 => 5, 1 => 2, 2 => 4, 3 => 1, 4 => 5, 5 => 2, 6 => 3},
-#     2 => {0 => 3, 1 => 6, 2 => 4, 3 => 7, 4 => 1, 5 => 4, 6 => 5},
-#     3 => {0 => 6, 1 => 3, 2 => 7, 3 => 4, 4 => 4, 5 => 1, 6 => 4},
-#     4 => {0 => 5, 1 => 4, 2 => 6, 3 => 5, 4 => 5, 5 => 4, 6 => 1}}}]
+#     [10, 5, 2.5, 2.5, 1.25, 1.25]]}]
 # Then the tree would look like:
 # {
 #   0 => {
@@ -157,24 +131,33 @@ end
 #     }
 #   },
 # }
-def build_plate_change_tree(sets, branch_number = 0, path_value = 0)
+def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination = [], path_value = 0)
   current_set = sets.first
   remaining_sets = sets[1..]
 
-  if current_set.key?('plate_changes')
+  unless current_set.key?('valid_plate_combinations')
+    raise "Expected 'valid_plate_combinations' to have been pre-calculated for each set before building the tree"
+  end
+
+  valid_plate_combinations = current_set['valid_plate_combinations']
+
+  if !valid_plate_combinations.flatten.empty?
     {
       branch_number =>
-        current_set['plate_changes'][branch_number].map do |current_branch_number, change_value|
+        valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
+          change_value = calculate_plate_changes(previous_plate_combination, plate_combination)
           if remaining_sets.empty?
             { current_branch_number => path_value + change_value }
           else
-            build_plate_change_tree(remaining_sets, current_branch_number, path_value + change_value)
+            build_plate_change_tree(remaining_sets, current_branch_number, plate_combination, path_value + change_value)
           end
         end.reduce(:merge)
     }
   elsif remaining_sets.empty?
+    # This will be an empty bar set that is also the last set
     { branch_number => path_value }
   else
-    build_plate_change_tree(remaining_sets, branch_number, path_value)
+    # This will be an empty bar set which has no plates
+    build_plate_change_tree(remaining_sets, branch_number, [], path_value)
   end
 end

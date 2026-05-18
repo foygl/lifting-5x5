@@ -28,6 +28,8 @@ test3 = [{"weight" => 15.0, "plates" => {}},
          {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
          {"weight" => 60.0, "plates" => {20 => 2, 2.5 => 2}}]
 
+test4 = [{"weight" => 15.0, "plates" => {}}]
+
 #test2_expected = [{"weight" => 15.0, "plates" => {}},
 #                  {"weight" => 20.0, "plates" => {2.5 => 2}},
 #                  {"weight" => 30.0, "plates" => {5 => 2, 2.5 => 2}},
@@ -39,8 +41,13 @@ pp minimise_plate_changes(test1)
 puts
 puts "Example 2:"
 pp minimise_plate_changes(test2)
+puts
 puts "Example 3:"
 pp minimise_plate_changes(test3)
+puts
+puts "Example 4:"
+pp minimise_plate_changes(test4)
+puts
 
 #calculate_all_plate_combinations test1.last['plates']
 
