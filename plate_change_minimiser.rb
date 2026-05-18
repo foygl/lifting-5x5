@@ -81,19 +81,100 @@ def calculate_plate_changes(current_plates, target_plates)
   target_plates_diff.length + current_plates_diff.length
 end
 
-def build_plate_change_tree(sets, tree = {}, path_value = 0)
-  # TODO: Implement me
-#  return path_value if sets.empty?
-#
-#  current_set = sets.first
-#  remaining_sets = sets[1..]
-#
-#  return build_plate_change_tree(remaining_sets) unless current_set.key?('plate_changes')
-#
-#  current_set['plate_changes'].each do |previous_combination_idx, changes|
-#    tree[previous_combination_idx] ||= {}
-#    changes.each do |current_combination_idx, change_count|
-#      puts build_plate_change_tree(remaining_sets, tree[previous_combination_idx][current_combination_idx] ||= {}, path_value + change_count)
-#    end
-#  end
+# If the input sets are:
+# [{"weight" => 15.0, "valid_plate_combinations" => [[]]},
+#  {"weight" => 40.0,
+#   "valid_plate_combinations" =>
+#    [[10, 2.5],
+#    [10, 1.25, 1.25],
+#    [5, 5, 2.5],
+#    [5, 5, 1.25, 1.25],
+#    [5, 2.5, 2.5, 1.25, 1.25]],
+#   "plate_changes" =>
+#    {0 => {0 => 2, 1 => 3, 2 => 3, 3 => 4, 4 => 5}}},
+#  {"weight" => 60.0,
+#   "valid_plate_combinations" =>
+#    [[20, 2.5],
+#     [20, 1.25, 1.25],
+#     [10, 10, 2.5],
+#     [10, 10, 1.25, 1.25],
+#     [10, 5, 5, 2.5],
+#     [10, 5, 5, 1.25, 1.25],
+#     [10, 5, 2.5, 2.5, 1.25, 1.25]],
+#   "plate_changes" =>
+#    {0 => {0 => 2, 1 => 5, 2 => 1, 3 => 4, 4 => 2, 5 => 5, 6 => 4},
+#     1 => {0 => 5, 1 => 2, 2 => 4, 3 => 1, 4 => 5, 5 => 2, 6 => 3},
+#     2 => {0 => 3, 1 => 6, 2 => 4, 3 => 7, 4 => 1, 5 => 4, 6 => 5},
+#     3 => {0 => 6, 1 => 3, 2 => 7, 3 => 4, 4 => 4, 5 => 1, 6 => 4},
+#     4 => {0 => 5, 1 => 4, 2 => 6, 3 => 5, 4 => 5, 5 => 4, 6 => 1}}}]
+# Then the tree would look like:
+# {
+#   0 => {
+#     0 => {
+#       0 => 4,
+#       1 => 7,
+#       2 => 3, <- best path [10, 2.5] -> [10, 10, 2.5]
+#       3 => 6,
+#       4 => 4,
+#       5 => 7,
+#       6 => 6
+#     },
+#     1 => {
+#       0 => 8,
+#       1 => 5,
+#       2 => 7,
+#       3 => 4,
+#       4 => 8,
+#       5 => 5,
+#       6 => 6
+#     },
+#     2 => {
+#       0 => 6,
+#       1 => 9,
+#       2 => 7,
+#       3 => 10,
+#       4 => 4, <- unusual short path [5, 5, 2.5] -> [10, 5, 5, 2.5]
+#       5 => 7,
+#       6 => 8
+#     },
+#     3 => {
+#       0 => 10,
+#       1 => 7,
+#       2 => 11,
+#       3 => 8,
+#       4 => 8,
+#       5 => 5,
+#       6 => 8
+#     },
+#     4 => {
+#       0 => 10,
+#       1 => 9,
+#       2 => 11,
+#       3 => 10,
+#       4 => 10,
+#       5 => 9,
+#       6 => 6
+#     }
+#   },
+# }
+def build_plate_change_tree(sets, branch_number = 0, path_value = 0)
+  current_set = sets.first
+  remaining_sets = sets[1..]
+
+  if current_set.key?('plate_changes')
+    {
+      branch_number =>
+        current_set['plate_changes'][branch_number].map do |current_branch_number, change_value|
+          if remaining_sets.empty?
+            { current_branch_number => path_value + change_value }
+          else
+            build_plate_change_tree(remaining_sets, current_branch_number, path_value + change_value)
+          end
+        end.reduce(:merge)
+    }
+  elsif remaining_sets.empty?
+    { branch_number => path_value }
+  else
+    build_plate_change_tree(remaining_sets, branch_number, path_value)
+  end
 end
