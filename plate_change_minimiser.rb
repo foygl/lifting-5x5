@@ -7,12 +7,12 @@ require_relative 'values'
 # Monkey patch to calculate the difference/intersection between two arrays, taking into account duplicates
 class Array
   def difference(other)
-    h = other.each_with_object(Hash.new(0)) { |e,h| h[e] += 1  }
+    h = other.each_with_object(Hash.new(0)) { |e, h| h[e] += 1 }
     reject { |e| h[e] > 0 && h[e] -= 1 }
   end
 
   def intersection(other)
-    h = other.each_with_object(Hash.new(0)) { |e,h| h[e] += 1  }
+    h = other.each_with_object(Hash.new(0)) { |e, h| h[e] += 1 }
     select { |e| h[e] > 0 && h[e] -= 1 }
   end
 end
@@ -30,7 +30,7 @@ def calculate_all_plate_combinations(plates)
   plate_weight = plates.map { |weight, count| weight * (count / 2) }.sum
   @available_plates ||= PLATES.map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
 
-  combinations = calculate_plate_combinations(@available_plates, plate_weight)
+  calculate_plate_combinations(@available_plates, plate_weight)
 end
 
 def calculate_plate_combinations(plates, target_weight)
@@ -45,7 +45,10 @@ def calculate_plate_combinations(plates, target_weight)
   remaining_plates = plates[1..]
 
   # Include the first plate
-  with_first = calculate_plate_combinations(remaining_plates, target_weight - first_plate).map { |combination| [first_plate] + combination }
+  with_first = calculate_plate_combinations(
+    remaining_plates,
+    target_weight - first_plate
+  ).map { |combination| [first_plate] + combination }
 
   # Exclude the first plate
   without_first = calculate_plate_combinations(remaining_plates, target_weight)
@@ -142,17 +145,28 @@ def build_plate_change_tree(sets, branch_number = 0, previous_plate_combination 
   valid_plate_combinations = current_set['valid_plate_combinations']
 
   if !valid_plate_combinations.flatten.empty?
-    {
-      branch_number =>
-        valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
-          change_value = calculate_plate_changes(previous_plate_combination, plate_combination)
-          if remaining_sets.empty?
-            { current_branch_number => path_value + change_value }
-          else
-            build_plate_change_tree(remaining_sets, current_branch_number, plate_combination, path_value + change_value)
-          end
-        end.reduce(:merge)
-    }
+    subtree = valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
+      change_value = calculate_plate_changes(previous_plate_combination, plate_combination)
+      if remaining_sets.empty?
+        { current_branch_number => path_value + change_value }
+      else
+        build_plate_change_tree(
+          remaining_sets,
+          current_branch_number,
+          plate_combination,
+          path_value + change_value
+        )
+      end
+    end.reduce(:merge)
+
+    # If there are no remaining sets prune away all but the best paths from the leaf nodes to simplify
+    # later best path calculations
+    if remaining_sets.empty?
+      min_value = subtree.values.min
+      subtree.select! { |_, value| value == min_value }
+    end
+
+    { branch_number => subtree }
   elsif remaining_sets.empty?
     # This will be an empty bar set that is also the last set
     { branch_number => path_value }
