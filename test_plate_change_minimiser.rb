@@ -83,3 +83,9 @@ puts
 puts calculate_plate_changes([5, 2.5], [10, 5])
 puts
 puts calculate_plate_changes([5, 2.5, 2.5], [5, 5, 2.5, 2.5])
+
+#pp calculate_all_plate_combinations(30)
+#pp calculate_all_plate_combinations(35)
+#pp calculate_all_plate_combinations(37)
+#pp calculate_all_plate_combinations(40)
+#pp calculate_all_plate_combinations(50)

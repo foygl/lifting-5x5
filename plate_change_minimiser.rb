@@ -9,24 +9,11 @@ PRUNE_TREE = true
 
 DEBUG = false
 
-# Monkey patch to calculate the difference/intersection between two arrays, taking into account duplicates
-class Array
-  def difference(other)
-    h = other.each_with_object(Hash.new(0)) { |e, h| h[e] += 1 }
-    reject { |e| h[e] > 0 && h[e] -= 1 }
-  end
-
-  def intersection(other)
-    h = other.each_with_object(Hash.new(0)) { |e, h| h[e] += 1 }
-    select { |e| h[e] > 0 && h[e] -= 1 }
-  end
-end
-
 def minimise_plate_changes(sets)
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
   end
-  pp sets if DEBUG
+  #pp sets if DEBUG
   tree = build_plate_change_tree(sets).first
   pp tree if DEBUG
   sets.each_with_index do |set, index|
@@ -48,7 +35,10 @@ def calculate_all_plate_combinations(weight)
   plate_weight = (weight - BAR_WEIGHT) / 2
   @available_plates ||= PLATES.map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
 
-  calculate_plate_combinations(@available_plates, plate_weight)
+  combinations = calculate_plate_combinations(@available_plates, plate_weight)
+
+  # Get all permutations of each combination to account for different plate arrangements on the bar
+  combinations.flat_map { |combination| combination.permutation.to_a.uniq }
 end
 
 def calculate_plate_combinations(plates, target_weight)
@@ -76,13 +66,15 @@ def calculate_plate_combinations(plates, target_weight)
 end
 
 def calculate_plate_changes(current_plates, target_plates)
-  shared_plates = current_plates.intersection(target_plates)
-  current_plates_diff = current_plates.difference(shared_plates)
-  target_plates_diff = target_plates.difference(shared_plates)
+  # Remove any common prefix of plates from the two arrays
+  until current_plates.empty? || target_plates.empty? || current_plates.first != target_plates.first
+    current_plates = current_plates[1..]
+    target_plates = target_plates[1..]
+  end
 
   # The number of plates that would have to be put on or taken off will be prioritised
   # The total weight of plates that would have to be put on or taken off will be used as a tiebreaker
-  (target_plates_diff.length + current_plates_diff.length).to_f * 10**6 + (target_plates_diff.sum + current_plates_diff.sum)
+  (target_plates.length + current_plates.length).to_f * 10**6 + (target_plates.sum + current_plates.sum)
 end
 
 # If the input sets are:
@@ -166,8 +158,16 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
   valid_plate_combinations = current_set['valid_plate_combinations']
 
   if !valid_plate_combinations.flatten.empty?
+    lowest_discovered_change_value = Float::INFINITY
+
     subtrees = valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
       change_value = calculate_plate_changes(previous_plate_combination, plate_combination)
+
+      # This branch cannot be part of the optimal path, so skip it
+      next if change_value > lowest_discovered_change_value && PRUNE_TREE
+
+      lowest_discovered_change_value = change_value
+
       if remaining_sets.empty?
         [{ current_branch_number => path_value + change_value }, path_value + change_value]
       else
@@ -178,7 +178,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
           path_value + change_value
         )
       end
-    end
+    end.compact
 
     # Prune the tree as we build it to only include the path(s) with the lowest total plate change value
     min_value = subtrees.map(&:last).min
