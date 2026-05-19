@@ -6,6 +6,8 @@ require_relative 'values'
 
 DEBUG = false
 
+LIGHTWEIGHT_PERMUTATION_THRESHOLD = 10
+
 def minimise_plate_changes(sets)
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
@@ -29,13 +31,33 @@ end
 
 def calculate_all_plate_combinations(weight)
   # For this calculation, consider just half the weight, since the same plates will be on both sides of the bar
-  plate_weight = (weight - BAR_WEIGHT) / 2
+  plate_weight = (weight - BAR_WEIGHT).to_f / 2.0
   @available_plates ||= PLATES.map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
 
   combinations = calculate_plate_combinations(@available_plates, plate_weight)
 
   # Get all permutations of each combination to account for different plate arrangements on the bar
-  combinations.flat_map { |combination| combination.permutation.to_a.uniq }
+  combinations.flat_map do |combination|
+    if combination.length < LIGHTWEIGHT_PERMUTATION_THRESHOLD
+      combination.permutation.to_a.uniq
+    else
+      puts "Combination #{combination} has #{combination.length} plates, so calculating a lightweight subset of permutations" if DEBUG
+
+      # Calculate a lightweight subset of permutations for combinations with too many plates as the number of
+      # permutations grows factorially (this is assuming that there are not too many distinct plate types - but this is
+      # unlikely).
+      # Note that this means we might not find the optimum plate change path, but can hopefully still find a good
+      # enough one.
+      unique_plate_permutations = combination.uniq.permutation.to_a.uniq
+      # Now add back the correct number of each plate to each unique permutation
+      plate_counts = combination.tally
+      unique_plate_permutations.map do |unique_permutation|
+        unique_permutation.flat_map do |plate|
+          [plate] * plate_counts[plate]
+        end
+      end
+    end
+  end
 end
 
 def calculate_plate_combinations(plates, target_weight)

@@ -78,7 +78,11 @@ test8_expected = [
 ]
 
 # 126 seems fine ([20, 10, 10, 5, 5, 2.5, 2.5]), but 128.5 gets stuck calculating
-test9 = [{"weight" => 128.5}]
+# "Found 5670 valid combinations for 126"
+# "Found 226800 valid combinations for 128.5"
+# "Found 1247400 valid combinations for 132"
+# Added in a simplified permutation calculator for when we reach this threshold
+test9 = [{"weight" => 132.0}]
 
 test9_expected = [{"weight" => 132, "plates" => [20, 10, 10, 5, 5, 2.5, 2.5, 1.25, 1.25, 0.25, 0.25, 0.25, 0.25]}]
 
@@ -115,4 +119,4 @@ puts calculate_plate_changes([5, 2.5, 2.5], [5, 5, 2.5, 2.5])
 #pp calculate_all_plate_combinations(35)
 #pp calculate_all_plate_combinations(37)
 #pp calculate_all_plate_combinations(40)
-#pp calculate_all_plate_combinations(50)
+#pp calculate_all_plate_combinations(132)
