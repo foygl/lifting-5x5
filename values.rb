@@ -14,12 +14,12 @@ WORKOUT_B = [SQUAT, OVERHEAD_PRESS, DEADLIFT].freeze
 BAR_WEIGHT = 15
 
 PLATES = {
-  0.25 => 8,
-  1.25 => 4,
-  2.5 => 4,
-  5 => 4,
-  10 => 4,
-  20 => 2
+  0.25 => 8, # Should max this at 8
+  1.25 => 4, # Should max this at 4
+  2.5 => 4,  # Should max this at 4
+  5 => 4,    # Should max this at 4
+  10 => 4,   # Should max this at 4
+  20 => 2    # Should max this at 20
 }.freeze
 
 MINIMUM_INCREMENT = PLATES.keys.min * 2
