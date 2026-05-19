@@ -5,6 +5,16 @@
 require_relative 'plate_change_minimiser'
 require_relative 'values'
 
+# Validate plate configuration
+Raise 'Too many 0.25 kg plates' if PLATES[0.25] > 8
+Raise 'Too many 1.25 kg plates' if PLATES[1.25] > 4
+Raise 'Too many 2.5 kg plates' if PLATES[2.5] > 4
+Raise 'Too many 5 kg plates' if PLATES[5] > 4
+Raise 'Too many 10 kg plates' if PLATES[10] > 4
+Raise 'Too many 15 kg plates' if PLATES[15] > 4
+Raise 'Too many 20 kg plates' if PLATES[20] > 20
+Raise 'Too many 25 kg plates' if PLATES[25] > 20
+
 def calculate_plates(weight)
   if weight < BAR_WEIGHT
     puts "Weight must be greater than or equal to #{BAR_WEIGHT} kg."
@@ -30,11 +40,11 @@ def calculate_plates(weight)
   plates_needed
 end
 
-def sanitise_weight_to_lift(weight, minimum_increment)
+def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
   weight = (weight / minimum_increment).floor * minimum_increment
   weight = [weight, BAR_WEIGHT].max
 
-  while calculate_plates(weight) == nil
+  while calculate_plates(weight) == nil || (max_weight && weight > max_weight)
     weight -= minimum_increment
   end
 
@@ -42,10 +52,12 @@ def sanitise_weight_to_lift(weight, minimum_increment)
 end
 
 def calculate_warmup_sets(exercise, target_weight)
+  return [] if target_weight < ADD_WARMUPS_THRESHOLD
+
   warmup_sets = WARMUP_SETS[exercise]
 
   warmup_sets.map do |set|
-    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'], MINIMUM_WARMUP_INCREMENT)
+    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'], MINIMUM_WARMUP_INCREMENT, target_weight - MIN_WARMUP_WEIGHT_DIFFERENCE)
 
     # Skip warmup sets that are just the bar, unless it's the first set with no multiplier as the weight is too light to be useful
     next if warmup_weight == BAR_WEIGHT && set['multiplier'] > 0

@@ -19,13 +19,23 @@ PLATES = {
   2.5 => 4,  # Should max this at 4
   5 => 4,    # Should max this at 4
   10 => 4,   # Should max this at 4
-  20 => 2    # Should max this at 20
+  15 => 0,   # Should max this at 4
+  20 => 2,   # Should max this at 20
+  25 => 0    # Should max this at 20
 }.freeze
 
 MINIMUM_INCREMENT = PLATES.keys.min * 2
 
 # We don't need precise fractional plates for warmups, so this keeps things simple
 MINIMUM_WARMUP_INCREMENT = 5
+
+# The threshold at which we start adding warmup sets
+ADD_WARMUPS_THRESHOLD = 30
+
+# This is used to ensure that the maximum warmup weight is at least this much less than the target weight
+MIN_WARMUP_WEIGHT_DIFFERENCE = 10
+
+WARMUP = 30
 
 SETS = {
   SQUAT => {
