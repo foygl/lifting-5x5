@@ -59,17 +59,23 @@ def calculate_warmup_sets(exercise, target_weight)
 end
 
 def calculate_workout(exercise, target_weight)
+  start_time = Time.now
+
   target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
 
   workout_sets = SETS[exercise]
 
-  minimise_plate_changes(
+  workout = minimise_plate_changes(
     calculate_warmup_sets(exercise, target_weight) + [{
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
       'weight' => target_weight.to_f
     }]
   )
+
+  puts "Calculated workout sets in #{Time.now - start_time} seconds"
+
+  workout
 end
 
 puts 'Select workout:'

@@ -4,6 +4,13 @@
 
 require_relative 'plate_change_minimiser'
 
+#for i in 15..400
+#  puts "Checking valid plate combinations for #{i}kg"
+#  puts "❌ No valid plate combinations for #{i}kg" if calculate_all_plate_combinations(i).length == 0
+#  puts "Checking valid plate combinations for #{i}.5kg"
+#  puts "❌ No valid plate combinations for #{i}.5kg" if calculate_all_plate_combinations(i + 0.5).length == 0
+#end
+
 DEBUG = true
 
 test1 = [{"weight" => 15.0},

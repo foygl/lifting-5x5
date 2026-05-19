@@ -6,7 +6,7 @@ require_relative 'values'
 
 DEBUG = false
 
-LIGHTWEIGHT_PERMUTATION_THRESHOLD = 10
+LIGHTWEIGHT_PERMUTATION_THRESHOLD = 9
 
 def minimise_plate_changes(sets)
   sets.each do |set|
