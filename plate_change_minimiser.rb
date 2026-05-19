@@ -4,9 +4,6 @@
 
 require_relative 'values'
 
-# Used for testing
-PRUNE_TREE = true
-
 DEBUG = false
 
 def minimise_plate_changes(sets)
@@ -164,7 +161,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
       change_value = calculate_plate_changes(previous_plate_combination, plate_combination)
 
       # This branch cannot be part of the optimal path, so skip it
-      next if change_value > lowest_discovered_change_value && PRUNE_TREE
+      next if change_value > lowest_discovered_change_value
 
       lowest_discovered_change_value = change_value
 
@@ -182,11 +179,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
 
     # Prune the tree as we build it to only include the path(s) with the lowest total plate change value
     min_value = subtrees.map(&:last).min
-    if PRUNE_TREE
-      subtree = subtrees.select { |_, value| value == min_value }.map(&:first).reduce(:merge)
-    else
-      subtree = subtrees.map(&:first).reduce(:merge)
-    end
+    subtree = subtrees.select { |_, value| value == min_value }.map(&:first).reduce(:merge)
 
     if branch_number.nil?
       [subtree, min_value]

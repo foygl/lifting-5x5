@@ -12,11 +12,11 @@ test1 = [{"weight" => 15.0},
          {"weight" => 80.0},
          {"weight" => 100.0}]
 
-test1_expected = [{"weight" => 15.0, "plates" => {}},
-                  {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
-                  {"weight" => 60.0, "plates" => {10 => 4, 2.5 => 2}},
-                  {"weight" => 80.0, "plates" => {20 => 1, 10 => 4, 2.5 => 2}},
-                  {"weight" => 100.0, "plates" => {20 => 2, 10 => 4, 2.5 => 2}}]
+test1_expected = [{"weight" => 15.0, "plates" => []},
+                  {"weight" => 40.0, "plates" => [10, 2.5]},
+                  {"weight" => 60.0, "plates" => [10, 2.5, 10]},
+                  {"weight" => 80.0, "plates" => [10, 2.5, 20]},
+                  {"weight" => 100.0, "plates" => [10, 2.5, 20, 10]}]
 
 
 test2 = [{"weight" => 15.0},
@@ -25,23 +25,23 @@ test2 = [{"weight" => 15.0},
          {"weight" => 45.0},
          {"weight" => 56.5}]
 
-test2_expected = [{"weight" => 15.0, "plates" => {}},
-                  {"weight" => 20.0, "plates" => {2.5 => 2}},
-                  {"weight" => 30.0, "plates" => {5 => 2, 2.5 => 2}},
-                  {"weight" => 45.0, "plates" => {10 => 2, 5 => 2}},
-                  {"weight" => 56.5, "plates" => {10 => 2, 5 => 4, 0.25 => 6}}]
+test2_expected = [{"weight" => 15.0, "plates" => []},
+                  {"weight" => 20.0, "plates" => [2.5]},
+                  {"weight" => 30.0, "plates" => [2.5, 5]},
+                  {"weight" => 45.0, "plates" => [2.5, 10, 2.5]},
+                  {"weight" => 56.5, "plates" => [2.5, 10, 2.5, 5, 0.25, 0.25, 0.25]}]
 
 test3 = [{"weight" => 15.0},
          {"weight" => 40.0},
          {"weight" => 60.0}]
 
-test3_expected = [{"weight" => 15.0, "plates" => {}},
-                  {"weight" => 40.0, "plates" => {10 => 2, 2.5 => 2}},
-                  {"weight" => 60.0, "plates" => {10 => 4, 2.5 => 2}}]
+test3_expected = [{"weight" => 15.0, "plates" => []},
+                  {"weight" => 40.0, "plates" => [10, 2.5]},
+                  {"weight" => 60.0, "plates" => [10, 2.5, 10]}]
 
 test4 = [{"weight" => 15.0}]
 
-test4_expected = [{"weight" => 15.0, "plates" => {}}]
+test4_expected = [{"weight" => 15.0, "plates" => []}]
 
 test5 = [{"weight" => 20.0},
          {"weight" => 25.0},
@@ -54,24 +54,51 @@ test5_expected = [{"weight" => 20.0, "plates" => [2.5]},
 test6 = [{"weight" => 15.0},
          {"weight" => 15.0}]
 
-puts "Example 1:"
-pp minimise_plate_changes(test1)
-puts
-puts "Example 2:"
-pp minimise_plate_changes(test2)
-puts
-puts "Example 3:"
-pp minimise_plate_changes(test3)
-puts
-puts "Example 4:"
-pp minimise_plate_changes(test4)
-puts
-puts "Example 5:"
-pp minimise_plate_changes(test5)
-puts
-puts "Example 6:"
-pp minimise_plate_changes(test6)
-puts
+test6_expected = [{"weight" => 15.0, "plates" => []},
+                  {"weight" => 15.0, "plates" => []}]
+
+test7 = [{"weight" => 120.0}]
+
+test7_expected = [{"weight" => 120.0, "plates" => [20, 10, 10, 5, 5, 2.5]}]
+
+test8 = [
+  {"weight" => 15.0},
+  {"weight" => 45.0},
+  {"weight" => 70.0},
+  {"weight" => 95.0},
+  {"weight" => 120.0}
+]
+
+test8_expected = [
+  {"weight" => 15.0, "plates" => []},
+  {"weight" => 45.0, "plates" => [10, 5]},
+  {"weight" => 70.0, "plates" => [10, 5, 2.5, 10]},
+  {"weight" => 95.0, "plates" => [10, 5, 2.5, 20, 2.5]},
+  {"weight" => 120.0, "plates" => [10, 5, 2.5, 20, 2.5, 10, 1.25, 1.25]}
+]
+
+# 126 seems fine ([20, 10, 10, 5, 5, 2.5, 2.5]), but 128.5 gets stuck calculating
+test9 = [{"weight" => 128.5}]
+
+test9_expected = [{"weight" => 132, "plates" => [20, 10, 10, 5, 5, 2.5, 2.5, 1.25, 1.25, 0.25, 0.25, 0.25, 0.25]}]
+
+def test_minimise_plate_changes(test_title, test_input, test_expected)
+  puts "#{test_title}:"
+  test_result =  minimise_plate_changes(test_input)
+  pp test_result
+  puts test_result == test_expected ? "✅ Test passed" : "❌ Test failed"
+  puts
+end
+
+test_minimise_plate_changes("Example 1", test1, test1_expected)
+test_minimise_plate_changes("Example 2", test2, test2_expected)
+test_minimise_plate_changes("Example 3", test3, test3_expected)
+test_minimise_plate_changes("Example 4", test4, test4_expected)
+test_minimise_plate_changes("Example 5", test5, test5_expected)
+test_minimise_plate_changes("Example 6", test6, test6_expected)
+test_minimise_plate_changes("Example 7", test7, test7_expected)
+test_minimise_plate_changes("Example 8", test8, test8_expected)
+test_minimise_plate_changes("Example 9", test9, test9_expected)
 
 #calculate_all_plate_combinations test1.last['plates']
 
