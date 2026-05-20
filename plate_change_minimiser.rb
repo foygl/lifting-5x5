@@ -18,6 +18,7 @@ def minimise_plate_changes(sets)
   #pp sets if DEBUG
   puts "Calculated valid plate combinations for all sets in #{Time.now - start_time} seconds" if DEBUG
   start_time = Time.now
+  @minimum_plate_moves_found = Float::INFINITY
   tree = build_plate_change_tree(sets).first
   #pp tree if DEBUG
   puts "Built plate change tree in #{Time.now - start_time} seconds" if DEBUG
@@ -223,8 +224,10 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
       lowest_discovered_change_value = change_value
 
       if remaining_sets.empty?
+        @minimum_plate_moves_found = path_value + change_value if path_value + change_value < @minimum_plate_moves_found
         [{ current_branch_number => LEAF }, path_value, path_value + change_value]
       else
+        next if path_value + change_value > @minimum_plate_moves_found
         build_plate_change_tree(
           remaining_sets,
           current_branch_number,
@@ -246,6 +249,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
   elsif remaining_sets.empty?
     # This will be an empty bar set that is also the last set
     # Setting the current branch number to 0 as there is only one option for the plate combination (no plates)
+    @minimum_plate_moves_found = path_value if path_value < @minimum_plate_moves_found
     if branch_number.nil?
       [{ 0 => LEAF }, path_value, path_value]
     else
