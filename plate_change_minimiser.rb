@@ -11,12 +11,16 @@ LIGHTWEIGHT_PERMUTATION_THRESHOLD = 9
 LEAF = 'END'
 
 def minimise_plate_changes(sets)
+  start_time = Time.now
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
   end
   #pp sets if DEBUG
+  puts "Calculated valid plate combinations for all sets in #{Time.now - start_time} seconds" if DEBUG
+  start_time = Time.now
   tree = build_plate_change_tree(sets).first
-  pp tree if DEBUG
+  #pp tree if DEBUG
+  puts "Built plate change tree in #{Time.now - start_time} seconds" if DEBUG
   sets.each_with_index do |set, index|
     # Just pick the first valid minimum path if there are multiple with the same value
     set['plates'] = set['valid_plate_combinations'][tree.keys.first]
@@ -184,16 +188,6 @@ end
 # And the pruned tree would look like:
 # {0 => {0 => {2 => 3}}}
 def build_plate_change_tree(sets, branch_number = nil, previous_plate_combination = [], path_value = 0)
-  key = "#{sets.map { |set| set['weight'] }.join(',')}_#{previous_plate_combination.join(',')}"
-  @plate_change_tree_cache ||= {}
-  if @plate_change_tree_cache.key?(key)
-    return [
-      @plate_change_tree_cache[key].first,
-      path_value,
-      path_value + @plate_change_tree_cache[key].last - @plate_change_tree_cache[key][1]
-    ]
-  end
-
   current_set = sets.first
   remaining_sets = sets[1..]
 
@@ -202,6 +196,20 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
   end
 
   valid_plate_combinations = current_set['valid_plate_combinations']
+
+  key = "#{sets.map { |set| set['weight'] }.join(',')}_#{previous_plate_combination.join(',')}"
+  @plate_change_tree_cache ||= {}
+  if @plate_change_tree_cache.key?(key)
+    return [
+      if !valid_plate_combinations.flatten.empty?
+        @plate_change_tree_cache[key].first
+      else
+        { branch_number => @plate_change_tree_cache[key].first }
+      end,
+      path_value,
+      path_value + @plate_change_tree_cache[key].last - @plate_change_tree_cache[key][1]
+    ]
+  end
 
   @plate_change_tree_cache[key] = if !valid_plate_combinations.flatten.empty?
     lowest_discovered_change_value = Float::INFINITY
