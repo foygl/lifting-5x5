@@ -38,7 +38,10 @@ def calculate_all_plate_combinations(weight)
 
   # Get all permutations of each combination to account for different plate arrangements on the bar
   combinations.flat_map do |combination|
-    if combination.length < LIGHTWEIGHT_PERMUTATION_THRESHOLD
+    if combination.uniq.length == 1
+      # Avoid calculating permutations when there is only one plate type
+      combination
+    elsif combination.length < LIGHTWEIGHT_PERMUTATION_THRESHOLD
       combination.permutation.to_a.uniq
     else
       puts "Combination #{combination} has #{combination.length} plates, so calculating a lightweight subset of permutations" if DEBUG
@@ -66,6 +69,14 @@ def calculate_plate_combinations(plates, target_weight)
 
   # Base case: if the target weight is negative or we have no plates left, no valid combination
   return [] if target_weight < 0 || plates.empty?
+
+  plates_sum = plates.sum
+
+  # Base case: if the sum of the remaining plates is less than the target weight, no valid combination
+  return [] if plates_sum < target_weight
+
+  # Base case: if the sum of the remaining plates is exactly equal to the target weight, we found the only valid combination
+  return [plates] if plates_sum == target_weight
 
   # Recursive case: include the first plate and exclude it
   first_plate = plates.first
