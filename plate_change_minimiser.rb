@@ -201,7 +201,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
   @plate_change_tree_cache ||= {}
   if @plate_change_tree_cache.key?(key)
     return [
-      if !valid_plate_combinations.flatten.empty?
+      if !valid_plate_combinations.flatten.empty? || branch_number.nil?
         @plate_change_tree_cache[key].first
       else
         { branch_number => @plate_change_tree_cache[key].first }
