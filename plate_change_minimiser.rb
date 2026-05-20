@@ -8,6 +8,8 @@ DEBUG = false
 
 LIGHTWEIGHT_PERMUTATION_THRESHOLD = 9
 
+LEAF = 'END'
+
 def minimise_plate_changes(sets)
   sets.each do |set|
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
@@ -24,7 +26,7 @@ def minimise_plate_changes(sets)
   end
 
   # Should have traversed the whole tree at this point and so "tree" should be a leaf
-  raise "Invalid plate change tree generated" unless tree.is_a?(Float) || tree.is_a?(Integer)
+  raise "Invalid plate change tree generated" unless tree == LEAF
 
   sets
 end
@@ -40,7 +42,7 @@ def calculate_all_plate_combinations(weight)
   combinations.flat_map do |combination|
     if combination.uniq.length == 1
       # Avoid calculating permutations when there is only one plate type
-      combination
+      [combination]
     elsif combination.length < LIGHTWEIGHT_PERMUTATION_THRESHOLD
       combination.permutation.to_a.uniq
     else
@@ -182,6 +184,16 @@ end
 # And the pruned tree would look like:
 # {0 => {0 => {2 => 3}}}
 def build_plate_change_tree(sets, branch_number = nil, previous_plate_combination = [], path_value = 0)
+  key = "#{sets.map { |set| set['weight'] }.join(',')}_#{previous_plate_combination.join(',')}"
+  @plate_change_tree_cache ||= {}
+  if @plate_change_tree_cache.key?(key)
+    return [
+      @plate_change_tree_cache[key].first,
+      path_value,
+      path_value + @plate_change_tree_cache[key].last - @plate_change_tree_cache[key][1]
+    ]
+  end
+
   current_set = sets.first
   remaining_sets = sets[1..]
 
@@ -191,7 +203,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
 
   valid_plate_combinations = current_set['valid_plate_combinations']
 
-  if !valid_plate_combinations.flatten.empty?
+  @plate_change_tree_cache[key] = if !valid_plate_combinations.flatten.empty?
     lowest_discovered_change_value = Float::INFINITY
 
     subtrees = valid_plate_combinations.each_with_index.map do |plate_combination, current_branch_number|
@@ -203,7 +215,7 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
       lowest_discovered_change_value = change_value
 
       if remaining_sets.empty?
-        [{ current_branch_number => path_value + change_value }, path_value + change_value]
+        [{ current_branch_number => LEAF }, path_value, path_value + change_value]
       else
         build_plate_change_tree(
           remaining_sets,
@@ -216,20 +228,20 @@ def build_plate_change_tree(sets, branch_number = nil, previous_plate_combinatio
 
     # Prune the tree as we build it to only include the path(s) with the lowest total plate change value
     min_value = subtrees.map(&:last).min
-    subtree = subtrees.select { |_, value| value == min_value }.map(&:first).reduce(:merge)
+    subtree = subtrees.select { |_, _, value| value == min_value }.map(&:first).reduce(:merge)
 
     if branch_number.nil?
-      [subtree, min_value]
+      [subtree, path_value, min_value]
     else
-      [{ branch_number => subtree }, min_value]
+      [{ branch_number => subtree }, path_value, min_value]
     end
   elsif remaining_sets.empty?
     # This will be an empty bar set that is also the last set
     # Setting the current branch number to 0 as there is only one option for the plate combination (no plates)
     if branch_number.nil?
-      [{ 0 => path_value }, path_value]
+      [{ 0 => LEAF }, path_value, path_value]
     else
-      [{ branch_number => { 0 => path_value } }, path_value]
+      [{ branch_number => { 0 => LEAF } }, path_value, path_value]
     end
   else
     # This will be an empty bar set which has no plates
