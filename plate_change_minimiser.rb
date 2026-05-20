@@ -64,6 +64,10 @@ def calculate_all_plate_combinations(weight)
 end
 
 def calculate_plate_combinations(plates, target_weight)
+  key = "#{plates.join(',')}-#{target_weight}"
+  @plate_combinations_cache ||= {}
+  return @plate_combinations_cache[key] if @plate_combinations_cache.key?(key)
+
   # Base case: if the target weight is 0, we found a valid combination
   return [[]] if target_weight == 0
 
@@ -92,7 +96,7 @@ def calculate_plate_combinations(plates, target_weight)
   without_first = calculate_plate_combinations(remaining_plates, target_weight)
 
   # Combine results and remove duplicates
-  (with_first + without_first).uniq
+  @plate_combinations_cache[key] = (with_first + without_first).uniq
 end
 
 def calculate_plate_changes(current_plates, target_plates)
