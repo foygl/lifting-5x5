@@ -96,6 +96,29 @@ def calculate_workout(exercise, target_weight)
   workout
 end
 
+def colourise(text, colour, background = false)
+  colours = {
+    red: 31,
+    green: 32,
+    yellow: 33,
+    blue: 34,
+    magenta: 35,
+    cyan: 36,
+    white: 37,
+    grey: 90,
+    bright_red: 91,
+    bright_green: 92,
+    bright_yellow: 93,
+    bright_blue: 94,
+    bright_magenta: 95,
+    bright_cyan: 96,
+    bright_white: 97
+  }
+  colour_code = colours[colour] || 0
+  colour_code += 10 if background
+  "\e[#{colour_code}m#{text}\e[0m"
+end
+
 puts 'Select workout:'
 puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
 puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
@@ -123,8 +146,8 @@ workout.each do |exercise|
   sets = calculate_workout(exercise, target_weight)
 
   sets.each do |set|
-    plates = "\n  | Recommended plates per side: #{set['plates'].map { |plate| "#{plate} kg" }.join(', ')}" unless set['plates'].empty?
-    minimum_plates = "\n  | Minimum plates per side:     #{set['minimum_plates'].map { |plate| "#{plate} kg" }.join(', ')}" unless set['minimum_plates'].empty?
-    puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}#{minimum_plates}"
+    plates = "\n  | Recommended plates per side: #{set['plates'].map { |plate| "#{colourise("#{plate} kg", PLATE_COLOURS[plate])}" }.join(' | ')}" unless set['plates'].empty?
+    minimum_plates = "\n  | Minimum plates per side:     #{set['minimum_plates'].map { |plate| "#{colourise("#{plate} kg", PLATE_COLOURS[plate])}" }.join(' | ')}" unless set['minimum_plates'].empty? || set['minimum_plates'].sort == set['plates'].sort
+    puts "#{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg#{plates}#{minimum_plates}"
   end
 end

@@ -24,6 +24,17 @@ PLATES = {
   25 => 0    # Should max this at 20
 }.freeze
 
+PLATE_COLOURS = {
+  0.25 => :bright_red,
+  1.25 => :bright_magenta,
+  2.5 => :bright_cyan,
+  5 => :bright_white,
+  10 => :bright_green,
+  15 => :bright_yellow,
+  20 => :bright_blue,
+  25 => :red
+}.freeze
+
 MINIMUM_INCREMENT = PLATES.keys.min * 2
 
 # We don't need precise fractional plates for warmups, so this keeps things simple
