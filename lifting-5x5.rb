@@ -162,13 +162,26 @@ def display_bar_and_plates(title, plates)
   end
 end
 
+workout_weights = {}
+
+puts
+
 workout.each do |exercise|
-  puts
   print "Enter target weight for #{exercise} (kg): "
   target_weight = gets.chomp.to_f
+
+  workout_weights[exercise] = target_weight
+end
+
+workout.each do |exercise|
+  target_weight = workout_weights[exercise]
+
+  puts
+  puts "Exercise: #{exercise} at #{target_weight} kg"
+
   sets = calculate_workout(exercise, target_weight)
 
-  sets.each do |set|
+  sets.each_with_index do |set, set_number|
     puts "#{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
     display_bar_and_plates('Recommended plates per side', set['plates']) unless set['plates'].empty?
     if SHOW_MINIMUM_PLATES && !set['minimum_plates'].empty? && set['minimum_plates'].sort != set['plates'].sort
@@ -179,7 +192,7 @@ workout.each do |exercise|
     set_completion_results = []
 
     for i in 1..set['sets']
-      print "  │ Successful reps for set #{i} [#{set['reps']}]: "
+      print "  │ Successful reps for set #{i} of #{set['sets']} [#{set['reps']}]: "
       successful_reps = gets.chomp
       successful_reps = set['reps'] if successful_reps.empty?
       successful_reps = successful_reps.to_i
@@ -190,7 +203,7 @@ workout.each do |exercise|
 
       set_completion_results << successful_reps
 
-      unless i == set['sets']
+      unless set_number == sets.length
         cooldown_time = successful_reps < set['reps'] ? COOLDOWN_SECONDS_ON_FAILURE : COOLDOWN_SECONDS_ON_SUCCESS
 
         begin
