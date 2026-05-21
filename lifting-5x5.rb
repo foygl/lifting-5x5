@@ -21,6 +21,9 @@ def calculate_plates(weight)
     return nil
   end
 
+  @plates_cache ||= {}
+  return @plates_cache[weight] if @plates_cache.key?(weight)
+
   remaining_weight = weight - BAR_WEIGHT
   plates_needed = {}
 
@@ -38,7 +41,7 @@ def calculate_plates(weight)
   end
 
   # Convert the plate counts to a list of plates for each side of the bar
-  plates_needed.map { |weight, count| [weight] * (count / 2)  }.flatten.sort.reverse
+  @plates_cache[weight] = plates_needed.map { |weight, count| [weight] * (count / 2)  }.flatten.sort.reverse
 end
 
 def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
@@ -120,7 +123,8 @@ workout.each do |exercise|
   sets = calculate_workout(exercise, target_weight)
 
   sets.each do |set|
-    plates = " | Plates per side: #{set['plates'].map { |plate| "#{plate} kg" }.join(', ')}" unless set['plates'].empty?
-    puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}"
+    plates = "\n  | Recommended plates per side: #{set['plates'].map { |plate| "#{plate} kg" }.join(', ')}" unless set['plates'].empty?
+    minimum_plates = "\n  | Minimum plates per side:     #{set['minimum_plates'].map { |plate| "#{plate} kg" }.join(', ')}" unless set['minimum_plates'].empty?
+    puts "#{set['sets']} sets of #{set['reps']} reps at #{set['weight']} kg#{plates}#{minimum_plates}"
   end
 end
