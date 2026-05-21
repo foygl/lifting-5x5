@@ -142,6 +142,23 @@ def display_bar_and_plates(title, plates)
   end
 end
 
+print 'Who is lifting?: '
+whoami = gets.chomp
+
+buddies = []
+while true
+  print 'Add a buddy: '
+  buddy = gets&.chomp
+
+  break if buddy.nil? || buddy.empty?
+
+  buddies << buddy
+end
+
+puts
+puts "#{whoami} is lifting#{" with " unless buddies.empty?}#{buddies.join(', ')}"
+puts
+
 puts 'Select workout:'
 puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
 puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
@@ -167,14 +184,17 @@ workout_weights = {}
 puts
 
 workout.each do |exercise|
-  print "Enter target weight for #{exercise} (kg): "
-  target_weight = gets.chomp.to_f
+  for person in [whoami] + buddies
+    print "Enter #{person}'s target weight for #{exercise} (kg): "
+    target_weight = gets.chomp.to_f
 
-  workout_weights[exercise] = target_weight
+    workout_weights[person] ||= {}
+    workout_weights[person][exercise] = target_weight
+  end
 end
 
 workout.each do |exercise|
-  target_weight = workout_weights[exercise]
+  target_weight = workout_weights[whoami][exercise]
 
   puts
   puts "Exercise: #{exercise} at #{target_weight} kg"
@@ -217,7 +237,7 @@ workout.each do |exercise|
           puts "\n  │ Cooldown interrupted. Proceeding to next set."
         end
 
-        `command -v espeak && espeak "Time for the next set"`
+        `command -v espeak && espeak "Time for the next set #{whoami}"`
       end
     end
     puts "  │ #{colourise("Finished sets: #{set_completion_results.join(', ')}", :cyan)}"
