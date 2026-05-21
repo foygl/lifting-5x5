@@ -190,15 +190,21 @@ workout.each do |exercise|
 
       set_completion_results << successful_reps
 
-      cooldown_time = successful_reps < set['reps'] ? 300 : 90
+      unless i == set['sets']
+        cooldown_time = successful_reps < set['reps'] ? COOLDOWN_SECONDS_ON_FAILURE : COOLDOWN_SECONDS_ON_SUCCESS
 
-      begin
-        cooldown_time.downto(1).each do |t|
-          print "  │ Wait #{colourise(t, :bright_white)} seconds before next set (ctrl+c to interrupt)\r"
-          sleep(1)
+        begin
+          cooldown_time.downto(1).each do |t|
+            print "  │ Wait #{colourise(t, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
+            sleep(1)
+            # Clear the contents of the current line
+            print "\033[0K\r"
+          end
+        rescue Interrupt
+          puts "\n  │ Cooldown interrupted. Proceeding to next set."
         end
-      rescue Interrupt
-        puts "\n  │ Cooldown interrupted. Proceeding to next set."
+
+        `command -v espeak && espeak "Time for the next set"`
       end
     end
     puts "  │ #{colourise("Finished sets: #{set_completion_results.join(', ')}", :cyan)}"
