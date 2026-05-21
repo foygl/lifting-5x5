@@ -58,7 +58,7 @@ def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
   weight
 end
 
-def calculate_warmup_sets(exercise, target_weight)
+def calculate_warmup_sets(exercise, target_weight, lifter)
   return [] if target_weight < ADD_WARMUPS_THRESHOLD
 
   warmup_sets = WARMUP_SETS[exercise]
@@ -70,6 +70,7 @@ def calculate_warmup_sets(exercise, target_weight)
     next if warmup_weight == BAR_WEIGHT && set['multiplier'] > 0
 
     {
+      'lifter' => lifter,
       'sets' => set['sets'],
       'reps' => set['reps'],
       'weight' => warmup_weight.to_f,
@@ -78,21 +79,47 @@ def calculate_warmup_sets(exercise, target_weight)
   end.compact
 end
 
-def calculate_workout(exercise, target_weight)
+def calculate_workout(exercise, target_weight, buddy_target_weights = [])
   start_time = Time.now
 
   target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
 
+  buddy_target_weights.each_with_index do |buddys_target_weight, i|
+    buddy_target_weights[i] = sanitise_weight_to_lift(buddys_target_weight, MINIMUM_INCREMENT)
+  end
+
   workout_sets = SETS[exercise]
 
-  workout = minimise_plate_changes(
-    calculate_warmup_sets(exercise, target_weight) + [{
+  workout = calculate_warmup_sets(exercise, target_weight, 'me') + [{
+              'lifter' => 'me',
+              'sets' => workout_sets['sets'],
+              'reps' => workout_sets['reps'],
+              'weight' => target_weight.to_f,
+              'minimum_plates' => calculate_plates(target_weight)
+            }]
+
+  buddy_workouts = buddy_target_weights.map do |buddys_target_weight|
+    calculate_warmup_sets(exercise, buddys_target_weight, 'buddy') + [{
+      'lifter' => 'buddy',
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
-      'weight' => target_weight.to_f,
-      'minimum_plates' => calculate_plates(target_weight)
+      'weight' => buddys_target_weight.to_f,
+      'minimum_plates' => calculate_plates(buddys_target_weight)
     }]
-  )
+  end
+
+  # Interleave all workouts
+  interleaved_workouts = workout
+  buddy_workouts.each do |buddy_workout|
+    # TODO Deal with situation where these are different lengths
+    interleaved_workouts = interleaved_workouts.zip(buddy_workout)
+  end
+  interleaved_workouts = interleaved_workouts.flatten
+  
+  pp workout
+  pp interleaved_workouts
+
+  workout = minimise_plate_changes(interleaved_workouts).select { |w| w['lifter'] == 'me' }
 
   puts "Calculated workout sets in #{Time.now - start_time} seconds"
 
@@ -199,7 +226,7 @@ workout.each do |exercise|
   puts
   puts "Exercise: #{exercise} at #{target_weight} kg"
 
-  sets = calculate_workout(exercise, target_weight)
+  sets = calculate_workout(exercise, target_weight, buddies.map { |b| workout_weights[b][exercise] })
 
   sets.each_with_index do |set, set_number|
     puts "#{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
