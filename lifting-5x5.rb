@@ -139,6 +139,9 @@ end
 puts
 puts "Selected workout: #{workout.join(', ')}"
 
+PLATE_SEPARATOR = '│'
+SHOW_MINIMUM_PLATES = false
+
 workout.each do |exercise|
   puts
   print "Enter target weight for #{exercise} (kg): "
@@ -146,8 +149,14 @@ workout.each do |exercise|
   sets = calculate_workout(exercise, target_weight)
 
   sets.each do |set|
-    plates = "\n  | Recommended plates per side: #{set['plates'].map { |plate| "#{colourise("#{plate} kg", PLATE_COLOURS[plate])}" }.join(' | ')}" unless set['plates'].empty?
-    minimum_plates = "\n  | Minimum plates per side:     #{set['minimum_plates'].map { |plate| "#{colourise("#{plate} kg", PLATE_COLOURS[plate])}" }.join(' | ')}" unless set['minimum_plates'].empty? || set['minimum_plates'].sort == set['plates'].sort
-    puts "#{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg#{plates}#{minimum_plates}"
+    plates = "\n  | Recommended plates per side: #{set['plates'].map { |plate| "#{colourise("#{plate} kg", PLATE_COLOURS[plate])}" }.join(PLATE_SEPARATOR)}" unless set['plates'].empty?
+    plates_bg = "\n  |                              #{set['plates'].map { |plate| "#{colourise(" " * (plate.to_s.length + 3), PLATE_COLOURS[plate], true)}" }.join(PLATE_SEPARATOR)}" unless set['plates'].empty?
+    plates_with_bar_bg = "\n  |    #{colourise("                          ", :grey, true)}#{set['plates'].map { |plate| "#{colourise(" " * (plate.to_s.length + 3), PLATE_COLOURS[plate], true)}" }.join(PLATE_SEPARATOR)}" unless set['plates'].empty?
+    if SHOW_MINIMUM_PLATES
+      minimum_plates = "\n  | Minimum plates per side:     #{set['minimum_plates'].map { |plate| "#{colourise("#{plate} kg", PLATE_COLOURS[plate])}" }.join(PLATE_SEPARATOR)}" unless set['minimum_plates'].empty? || set['minimum_plates'].sort == set['plates'].sort
+      minimum_plates_bg = "\n  |                              #{set['minimum_plates'].map { |plate| "#{colourise(" " * (plate.to_s.length + 3), PLATE_COLOURS[plate], true)}" }.join(PLATE_SEPARATOR)}" unless set['minimum_plates'].empty? || set['minimum_plates'].sort == set['plates'].sort
+      minimum_plates_with_bar_bg = "\n  |    #{colourise("                          ", :grey, true)}#{set['minimum_plates'].map { |plate| "#{colourise(" " * (plate.to_s.length + 3), PLATE_COLOURS[plate], true)}" }.join(PLATE_SEPARATOR)}" unless set['minimum_plates'].empty? || set['minimum_plates'].sort == set['plates'].sort
+    end
+    puts "#{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg#{plates}#{plates_bg * 3 unless plates_bg.nil?}#{plates_with_bar_bg}#{plates_bg * 3 unless plates_bg.nil?}#{minimum_plates}#{minimum_plates_bg * 3 unless minimum_plates_bg.nil?}#{minimum_plates_with_bar_bg}#{minimum_plates_bg * 3 unless minimum_plates_bg.nil?}"
   end
 end
