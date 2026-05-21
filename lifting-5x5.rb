@@ -175,5 +175,32 @@ workout.each do |exercise|
       puts "  │"
       display_bar_and_plates('Minimum plates per side', set['minimum_plates'])
     end
+
+    set_completion_results = []
+
+    for i in 1..set['sets']
+      print "  │ Successful reps for set #{i} [#{set['reps']}]: "
+      successful_reps = gets.chomp
+      successful_reps = set['reps'] if successful_reps.empty?
+      successful_reps = successful_reps.to_i
+
+      if successful_reps < set['reps']
+        puts colourise("  │ Only #{successful_reps} reps completed. Consider reducing the weight next time.", :red)
+      end
+
+      set_completion_results << successful_reps
+
+      cooldown_time = successful_reps < set['reps'] ? 300 : 90
+
+      begin
+        cooldown_time.downto(1).each do |t|
+          print "  │ Wait #{colourise(t, :bright_white)} seconds before next set (ctrl+c to interrupt)\r"
+          sleep(1)
+        end
+      rescue Interrupt
+        puts "\n  │ Cooldown interrupted. Proceeding to next set."
+      end
+    end
+    puts "  │ #{colourise("Finished sets: #{set_completion_results.join(', ')}", :cyan)}"
   end
 end
