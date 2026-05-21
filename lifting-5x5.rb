@@ -15,6 +15,9 @@ Raise 'Too many 15 kg plates' if PLATES[15] > 4
 Raise 'Too many 20 kg plates' if PLATES[20] > 20
 Raise 'Too many 25 kg plates' if PLATES[25] > 20
 
+PLATE_SEPARATOR = '│'
+SHOW_MINIMUM_PLATES = false
+
 def calculate_plates(weight)
   if weight < BAR_WEIGHT
     puts "Weight must be greater than or equal to #{BAR_WEIGHT} kg."
@@ -119,29 +122,6 @@ def colourise(text, colour, background = false)
   "\e[#{colour_code}m#{text}\e[0m"
 end
 
-puts 'Select workout:'
-puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
-puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
-while true
-  workout_choice = gets.chomp.to_i
-  workout = case workout_choice
-            when 1
-              WORKOUT_A
-            when 2
-              WORKOUT_B
-            else
-              puts 'Invalid choice. Please enter 1 or 2.'
-              next
-            end
-  break
-end
-
-puts
-puts "Selected workout: #{workout.join(', ')}"
-
-PLATE_SEPARATOR = '│'
-SHOW_MINIMUM_PLATES = false
-
 def display_bar_and_plates(title, plates)
   bar_length = 8
 
@@ -161,6 +141,26 @@ def display_bar_and_plates(title, plates)
     puts "  │   #{no_bar}#{plates_display}"
   end
 end
+
+puts 'Select workout:'
+puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
+puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
+while true
+  workout_choice = gets.chomp.to_i
+  workout = case workout_choice
+            when 1
+              WORKOUT_A
+            when 2
+              WORKOUT_B
+            else
+              puts 'Invalid choice. Please enter 1 or 2.'
+              next
+            end
+  break
+end
+
+puts
+puts "Selected workout: #{workout.join(', ')}"
 
 workout_weights = {}
 
