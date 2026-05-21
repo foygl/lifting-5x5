@@ -37,7 +37,8 @@ def calculate_plates(weight)
     return nil
   end
 
-  plates_needed
+  # Convert the plate counts to a list of plates for each side of the bar
+  plates_needed.map { |weight, count| [weight] * (count / 2)  }.flatten.sort.reverse
 end
 
 def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
@@ -65,7 +66,8 @@ def calculate_warmup_sets(exercise, target_weight)
     {
       'sets' => set['sets'],
       'reps' => set['reps'],
-      'weight' => warmup_weight.to_f
+      'weight' => warmup_weight.to_f,
+      'minimum_plates' => calculate_plates(warmup_weight)
     }
   end.compact
 end
@@ -81,7 +83,8 @@ def calculate_workout(exercise, target_weight)
     calculate_warmup_sets(exercise, target_weight) + [{
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
-      'weight' => target_weight.to_f
+      'weight' => target_weight.to_f,
+      'minimum_plates' => calculate_plates(target_weight)
     }]
   )
 
