@@ -2,6 +2,7 @@
 
 # frozen_string_literal: true
 
+require_relative 'persistence'
 require_relative 'plate_change_minimiser'
 require_relative 'util'
 require_relative 'values'
@@ -180,62 +181,70 @@ print 'Who is lifting?: '
 whoami = gets.chomp
 whoami = 'Anon' if whoami.empty?
 
-buddies = []
-while true
-  print 'Add a buddy: '
-  buddy = gets&.chomp
+p = Persistence.new(whoami)
 
-  break if buddy.nil? || buddy.empty?
+if p.buddies.empty?
+  while true
+    print 'Add a buddy: '
+    buddy = gets&.chomp
 
-  buddies << buddy
-end
+    break if buddy.nil? || buddy.empty?
 
-puts
-puts "#{whoami} is lifting#{" with " unless buddies.empty?}#{buddies.join(', ')}"
-puts
-
-puts 'Select workout:'
-puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
-puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
-while true
-  workout_choice = gets.chomp.to_i
-  workout = case workout_choice
-            when 1
-              WORKOUT_A
-            when 2
-              WORKOUT_B
-            else
-              puts colourise('Invalid choice. Please enter 1 or 2.', :yellow)
-              next
-            end
-  break
-end
-
-puts
-puts colourise("Selected workout: #{workout.join(', ')}", :grey)
-
-workout_weights = {}
-
-puts
-
-workout.each do |exercise|
-  for person in [whoami] + buddies
-    print "Enter #{person}'s target weight for #{exercise} (kg): "
-    target_weight = gets.chomp.to_f
-    target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
-
-    workout_weights[person] ||= {}
-    workout_weights[person][exercise] = target_weight
+    p.buddies << buddy
   end
+  p.flush_state
 end
 
-workout.each do |exercise|
-  target_weight = workout_weights[whoami][exercise]
+puts
+puts "#{whoami} is lifting#{" with " unless p.buddies.empty?}#{p.buddies.join(', ')}"
+
+if p.workout.nil?
+  puts
+  puts 'Select workout:'
+  puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
+  puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
+  while true
+    workout_choice = gets.chomp.to_i
+    p.workout = case workout_choice
+                when 1
+                  WORKOUT_A
+                when 2
+                  WORKOUT_B
+                else
+                  puts colourise('Invalid choice. Please enter 1 or 2.', :yellow)
+                  next
+                end
+    break
+  end
+  p.flush_state
+end
+
+puts
+puts colourise("Selected workout: #{p.workout.join(', ')}", :grey)
+
+if p.workout_weights.empty?
+  puts
+
+  p.workout.each do |exercise|
+    for person in [whoami] + p.buddies
+      print "Enter #{person}'s target weight for #{exercise} (kg): "
+      target_weight = gets.chomp.to_f
+      target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
+
+      p.workout_weights[person] ||= {}
+      p.workout_weights[person][exercise] = target_weight
+    end
+  end
+  p.flush_state
+end
+
+p.workout.each do |exercise|
+  target_weight = p.workout_weights[whoami][exercise]
 
   puts
   puts "Exercise: #{exercise} at #{target_weight} kg"
 
-  sets = calculate_workout(exercise, target_weight, buddies.map { |b| workout_weights[b][exercise] })
+  sets = calculate_workout(exercise, target_weight, p.buddies.map { |b| p.workout_weights[b][exercise] })
 
   puts "  ┌────────────── Exercise Summary ──────────────┐"
   sets.each do |set|
