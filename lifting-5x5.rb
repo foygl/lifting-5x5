@@ -183,7 +183,7 @@ whoami = 'Anon' if whoami.empty?
 
 p = Persistence.new(whoami)
 
-if p.buddies.empty?
+if p.buddies.empty? && p.workout.nil?
   while true
     print 'Add a buddy: '
     buddy = gets&.chomp
