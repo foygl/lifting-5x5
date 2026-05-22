@@ -2,6 +2,7 @@
 
 # frozen_string_literal: true
 
+require_relative 'util'
 require_relative 'values'
 
 DEBUG = false
@@ -16,11 +17,11 @@ def minimise_plate_changes(sets)
     set['valid_plate_combinations'] = calculate_all_plate_combinations(set['weight'])
   end
   #pp sets if DEBUG
-  puts "Calculated valid plate combinations for all sets in #{Time.now - start_time} seconds" if DEBUG
+  debug "Calculated valid plate combinations for all sets in #{Time.now - start_time} seconds"
   start_time = Time.now
   tree = build_plate_change_tree(sets).first
   #pp tree if DEBUG
-  puts "Built plate change tree in #{Time.now - start_time} seconds" if DEBUG
+  debug "Built plate change tree in #{Time.now - start_time} seconds"
   sets.each_with_index do |set, index|
     if tree == LEAF
       # TODO: I reached this edge case where a buddy is lifting empty bar as their working sets. I've addressed it by
@@ -57,7 +58,7 @@ def calculate_all_plate_combinations(weight)
     elsif combination.length < LIGHTWEIGHT_PERMUTATION_THRESHOLD
       combination.permutation.to_a.uniq
     else
-      puts "Combination #{combination} has #{combination.length} plates, so calculating a lightweight subset of permutations" if DEBUG
+      debug "Combination #{combination} has #{combination.length} plates, so calculating a lightweight subset of permutations"
 
       # Calculate a lightweight subset of permutations for combinations with too many plates as the number of
       # permutations grows factorially (this is assuming that there are not too many distinct plate types - but this is

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'plate_change_minimiser'
+require_relative 'util'
 require_relative 'values'
 
 # Validate plate configuration
@@ -155,29 +156,6 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
   workout
 end
 
-def colourise(text, colour, background = false)
-  colours = {
-    red: 31,
-    green: 32,
-    yellow: 33,
-    blue: 34,
-    magenta: 35,
-    cyan: 36,
-    white: 37,
-    grey: 90,
-    bright_red: 91,
-    bright_green: 92,
-    bright_yellow: 93,
-    bright_blue: 94,
-    bright_magenta: 95,
-    bright_cyan: 96,
-    bright_white: 97
-  }
-  colour_code = colours[colour] || 0
-  colour_code += 10 if background
-  "\e[#{colour_code}m#{text}\e[0m"
-end
-
 def display_bar_and_plates(title, plates)
   bar_length = 8
 
@@ -261,10 +239,8 @@ workout.each do |exercise|
 
   puts "  ┌────────────── Workout Summary ──────────────┐"
   sets.each do |set|
-    # Need to calculate the displayed text width separately because of the later addition of colour codes
-    text_width = set['name'].length + 2 + set['sets'].to_s.length + 9 + set['reps'].to_s.length + 9 + set['weight'].to_s.length + 3
     set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
-    puts "  │ #{set['summary']}#{" "* (44 - text_width)}│"
+    puts "  │ #{set['summary']}#{" "* (44 - decolourise(set['summary']).length)}│"
   end
   puts "  └─────────────────────────────────────────────┘"
 
