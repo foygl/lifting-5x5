@@ -185,9 +185,13 @@ def format_set_completion_results(set_completion_results)
   end.join(', ')
 end
 
-print 'Who is lifting?: '
-whoami = gets.chomp
-whoami = 'Anon' if whoami.empty?
+whoami = ARGV[0] unless ARGV.empty?
+
+if whoami.nil?
+  print 'Who is lifting?: '
+  whoami = gets.chomp
+  whoami = 'Anon' if whoami.empty?
+end
 
 p = Persistence.new(whoami)
 
