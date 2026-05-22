@@ -2,10 +2,10 @@
 
 # frozen_string_literal: true
 
-require_relative 'persistence'
-require_relative 'plate_change_minimiser'
-require_relative 'util'
-require_relative 'values'
+require_relative 'config/values'
+require_relative 'lib/persistence'
+require_relative 'lib/plate_change_minimiser'
+require_relative 'lib/util'
 
 # Validate plate configuration
 raise 'Too many 0.25 kg plates' if PLATES[0.25] > 8

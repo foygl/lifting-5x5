@@ -1,9 +1,7 @@
-#!/usr/bin/env ruby
-
 # frozen_string_literal: true
 
+require_relative '../config/values'
 require_relative 'util'
-require_relative 'values'
 
 DEBUG = false
 

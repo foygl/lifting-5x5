@@ -2,7 +2,7 @@
 
 # frozen_string_literal: true
 
-require_relative 'plate_change_minimiser'
+require_relative 'lib/plate_change_minimiser'
 
 #for i in 15..400
 #  puts "Checking valid plate combinations for #{i}kg"
