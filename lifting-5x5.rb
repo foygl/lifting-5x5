@@ -186,6 +186,7 @@ def format_set_completion_results(set_completion_results)
 end
 
 whoami = ARGV[0] unless ARGV.empty?
+ARGV.clear
 
 if whoami.nil?
   print 'Who is lifting?: '
