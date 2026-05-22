@@ -5,6 +5,8 @@
 require 'date'
 require 'json'
 
+require_relative 'util'
+
 class Persistence
 
   def initialize(lifter)
@@ -38,6 +40,7 @@ class Persistence
 
   def get_state
     if File.exist?(@@filename)
+      puts colourise("Loaded existing state from #{@@filename}", :grey)
       @@state = JSON.parse(File.read(@@filename))
     else
       @@state = {}
