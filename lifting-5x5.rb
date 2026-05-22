@@ -244,17 +244,18 @@ p.workout.each do |exercise|
   puts
   puts "Exercise: #{exercise} at #{target_weight} kg"
 
-  sets = calculate_workout(exercise, target_weight, p.buddies.map { |b| p.workout_weights[b][exercise] })
+  p.sets[exercise] ||= calculate_workout(exercise, target_weight, p.buddies.map { |b| p.workout_weights[b][exercise] })
 
   puts "  ┌────────────── Exercise Summary ──────────────┐"
-  sets.each do |set|
+  p.sets[exercise].each do |set|
     set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
     puts "  │ #{set['summary']}#{" "* (45 - decolourise(set['summary']).length)}│"
   end
   puts "  └──────────────────────────────────────────────┘"
 
+  p.flush_state
 
-  sets.each_with_index do |set, set_number|
+  p.sets[exercise].each_with_index do |set, set_number|
     puts set['summary']
     display_bar_and_plates('Recommended plates per side', set['plates']) unless set['plates'].empty?
     if SHOW_MINIMUM_PLATES && !set['minimum_plates'].empty? && set['minimum_plates'].sort != set['plates'].sort
@@ -265,33 +266,42 @@ p.workout.each do |exercise|
     set_completion_results = []
 
     for i in 1..set['sets']
-      print "  │ Successful reps for set #{i} of #{set['sets']} [#{set['reps']}]: "
-      successful_reps = gets.chomp
-      successful_reps = set['reps'] if successful_reps.empty?
-      successful_reps = successful_reps.to_i
+      p.successful_reps[exercise] ||= {}
+      p.successful_reps[exercise][set['name']] ||= {}
 
-      if successful_reps < set['reps']
-        puts colourise("  │ Only #{successful_reps} reps completed. Consider reducing the weight next time.", :red)
-      end
+      p.successful_reps[exercise][set['name']][i.to_s] ||= begin
+        print "  │ Successful reps for set #{i} of #{set['sets']} [#{set['reps']}]: "
+        successful_reps = gets.chomp
+        successful_reps = set['reps'] if successful_reps.empty?
+        successful_reps = successful_reps.to_i
 
-      set_completion_results << successful_reps
-
-      unless set_number == sets.length
-        cooldown_time = successful_reps < set['reps'] ? COOLDOWN_SECONDS_ON_FAILURE : COOLDOWN_SECONDS_ON_SUCCESS
-
-        begin
-          cooldown_time.downto(1).each do |t|
-            print "  │ Wait #{colourise(t, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
-            sleep(1)
-            # Clear the contents of the current line
-            print "\033[0K\r"
-          end
-        rescue Interrupt
-          puts "\n  │ Cooldown interrupted. Proceeding to next set."
+        if successful_reps < set['reps']
+          puts colourise("  │ Only #{successful_reps} reps completed. Consider reducing the weight next time.", :red)
         end
 
-        `command -v espeak && espeak "Time for the next set #{whoami}"`
+        unless set_number == p.sets[exercise].length
+          cooldown_time = successful_reps < set['reps'] ? COOLDOWN_SECONDS_ON_FAILURE : COOLDOWN_SECONDS_ON_SUCCESS
+
+          begin
+            cooldown_time.downto(1).each do |t|
+              print "  │ Wait #{colourise(t, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
+              sleep(1)
+              # Clear the contents of the current line
+              print "\033[0K\r"
+            end
+          rescue Interrupt
+            puts "\n  │ Cooldown interrupted. Proceeding to next set."
+          end
+
+          `command -v espeak && espeak "Time for the next set #{whoami}"`
+        end
+
+        "#{successful_reps}/#{set['reps']}"
       end
+
+      p.flush_state
+
+      set_completion_results << p.successful_reps[exercise][set['name']][i.to_s]
     end
     puts "  │ #{colourise("Finished sets: #{set_completion_results.join(', ')}", :cyan)}"
   end

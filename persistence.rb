@@ -28,6 +28,14 @@ class Persistence
     @@state['workout_weights'] ||= {}
   end
 
+  def sets
+    @@state['sets'] ||= {}
+  end
+
+  def successful_reps
+    @@state['successful_reps'] ||= {}
+  end
+
   def get_state
     if File.exist?(@@filename)
       @@state = JSON.parse(File.read(@@filename))
