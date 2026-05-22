@@ -296,13 +296,16 @@ p.workout.each do |exercise|
           `command -v espeak && espeak "Time for the next set #{whoami}"`
         end
 
-        "#{successful_reps}/#{set['reps']}"
+        { 'actual' => successful_reps, 'target' => set['reps'] }
       end
 
       p.flush_state
 
       set_completion_results << p.successful_reps[exercise][set['name']][i.to_s]
     end
-    puts "  │ #{colourise("Finished sets: #{set_completion_results.join(', ')}", :cyan)}"
+    formatted_results = set_completion_results.map do |r|
+      colourise("#{r['actual']}/#{r['target']}", r['actual'] < r['target'] ? :red : :green)
+    end.join(', ')
+    puts "  │ #{colourise("Finished sets: #{formatted_results}", :cyan)}"
   end
 end
