@@ -237,12 +237,12 @@ workout.each do |exercise|
 
   sets = calculate_workout(exercise, target_weight, buddies.map { |b| workout_weights[b][exercise] })
 
-  puts "  ┌────────────── Workout Summary ──────────────┐"
+  puts "  ┌────────────── Exercise Summary ──────────────┐"
   sets.each do |set|
     set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
-    puts "  │ #{set['summary']}#{" "* (44 - decolourise(set['summary']).length)}│"
+    puts "  │ #{set['summary']}#{" "* (45 - decolourise(set['summary']).length)}│"
   end
-  puts "  └─────────────────────────────────────────────┘"
+  puts "  └──────────────────────────────────────────────┘"
 
 
   sets.each_with_index do |set, set_number|
