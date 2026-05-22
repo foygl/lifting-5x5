@@ -4,6 +4,7 @@
 
 def colourise(text, colour, background = false)
   colours = {
+    none: 0,
     red: 31,
     green: 32,
     yellow: 33,

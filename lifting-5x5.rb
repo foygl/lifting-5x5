@@ -20,6 +20,8 @@ raise 'Too many 25 kg plates' if PLATES[25] > 20
 PLATE_SEPARATOR = '│'
 SHOW_MINIMUM_PLATES = false
 
+WORKING_SETS_LABEL = 'Working sets'
+
 def calculate_plates(weight)
   if weight < BAR_WEIGHT
     puts colourise("Weight must be greater than or equal to #{BAR_WEIGHT} kg.", :red)
@@ -95,7 +97,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
 
   workout = calculate_warmup_sets(exercise, target_weight, :me) + [{
               'lifter' => :me,
-              'name' => 'Working sets',
+              'name' => WORKING_SETS_LABEL,
               'sets' => workout_sets['sets'],
               'reps' => workout_sets['reps'],
               'weight' => target_weight.to_f,
@@ -108,7 +110,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
   buddy_workouts = buddy_target_weights.map do |buddys_target_weight|
     calculate_warmup_sets(exercise, buddys_target_weight, :buddy) + [{
       'lifter' => :buddy,
-      'name' => 'Working sets',
+      'name' => WORKING_SETS_LABEL,
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
       'weight' => buddys_target_weight.to_f,
@@ -127,9 +129,9 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
       interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == BAR_WEIGHT
     end
   end
-  interleaved_workouts << workout.find { |s| s['name'] == 'Working sets' }
+  interleaved_workouts << workout.find { |s| s['name'] == WORKING_SETS_LABEL }
   buddy_workouts.each do |buddy_workout|
-    buddy_workout_set = buddy_workout.find { |s| s['name'] == 'Working sets' }
+    buddy_workout_set = buddy_workout.find { |s| s['name'] == WORKING_SETS_LABEL }
     interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == BAR_WEIGHT
   end
 
@@ -175,6 +177,12 @@ def display_bar_and_plates(title, plates)
   1.upto(3).each do |_|
     puts "  │   #{no_bar}#{plates_display}"
   end
+end
+
+def format_set_completion_results(set_completion_results)
+  set_completion_results.map do |r|
+    colourise("#{r['actual']}/#{r['target']}", r['actual'] < r['target'] ? :red : :green)
+  end.join(', ')
 end
 
 print 'Who is lifting?: '
@@ -231,25 +239,25 @@ if p.workout_weights.empty?
       target_weight = gets.chomp.to_f
       target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
 
-      p.workout_weights[person] ||= {}
-      p.workout_weights[person][exercise] = target_weight
+      p.workout_weights[person.downcase] ||= {}
+      p.workout_weights[person.downcase][exercise] = target_weight
     end
   end
   p.flush_state
 end
 
 p.workout.each do |exercise|
-  target_weight = p.workout_weights[whoami][exercise]
+  target_weight = p.workout_weights[whoami.downcase][exercise]
 
   puts
   puts "Exercise: #{exercise} at #{target_weight} kg"
 
-  p.sets[exercise] ||= calculate_workout(exercise, target_weight, p.buddies.map { |b| p.workout_weights[b][exercise] })
+  p.sets[exercise] ||= calculate_workout(exercise, target_weight, p.buddies.map { |b| p.workout_weights[b.downcase][exercise] })
 
   puts "  ┌────────────── Exercise Summary ──────────────┐"
   p.sets[exercise].each do |set|
     set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
-    puts "  │ #{set['summary']}#{" "* (45 - decolourise(set['summary']).length)}│"
+    puts "  │ #{set['summary']}#{" " * (45 - decolourise(set['summary']).length)}│"
   end
   puts "  └──────────────────────────────────────────────┘"
 
@@ -303,9 +311,22 @@ p.workout.each do |exercise|
 
       set_completion_results << p.successful_reps[exercise][set['name']][i.to_s]
     end
-    formatted_results = set_completion_results.map do |r|
-      colourise("#{r['actual']}/#{r['target']}", r['actual'] < r['target'] ? :red : :green)
-    end.join(', ')
-    puts "  │ #{colourise("Finished sets: #{formatted_results}", :cyan)}"
+    puts "  │ #{colourise("Finished sets: #{format_set_completion_results(set_completion_results)}", :cyan)}"
   end
 end
+
+puts
+
+box_right_padding = 59
+puts "  ┌─────────────────── Post-Workout Summary ───────────────────┐"
+p.successful_reps.each_with_index do |exercise_results, i|
+  puts "  ├────────────────────────────────────────────────────────────┤" unless i == 0
+  exercise = exercise_results.first
+  set_groups = exercise_results.last
+  puts "  │ #{exercise}:#{" " * (box_right_padding - exercise.length - 1)}│"
+  set_groups.each do |set_group, sets|
+    set_group_formatted = "  #{colourise("#{set_group}:", set_group == WORKING_SETS_LABEL ? :none : :grey)} #{format_set_completion_results(sets.map { |_, r| r })}"
+    puts "  │ #{set_group_formatted}#{" " * (box_right_padding - decolourise(set_group_formatted).length)}│"
+  end
+end
+  puts "  └────────────────────────────────────────────────────────────┘"
