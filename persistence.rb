@@ -9,8 +9,10 @@ require_relative 'util'
 
 class Persistence
 
+  @@directory = 'db'
+
   def initialize(lifter)
-    @@filename = "#{lifter.downcase}_#{Date.today.iso8601}.json"
+    @@filename = "#{@@directory}/#{lifter.downcase}_#{Date.today.iso8601}.json"
     get_state
   end
 
@@ -48,6 +50,8 @@ class Persistence
   end
 
   def flush_state
+    Dir.mkdir(@@directory) unless File.exist?(@@directory)
+
     File.open(@@filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
       f.write @@state.to_json
     end
