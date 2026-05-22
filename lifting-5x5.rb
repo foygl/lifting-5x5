@@ -325,7 +325,8 @@ p.successful_reps.each_with_index do |exercise_results, i|
   set_groups = exercise_results.last
   puts "  │ #{exercise}:#{" " * (box_right_padding - exercise.length - 1)}│"
   set_groups.each do |set_group, sets|
-    set_group_formatted = "  #{colourise("#{set_group}:", set_group == WORKING_SETS_LABEL ? :none : :grey)} #{format_set_completion_results(sets.map { |_, r| r })}"
+    weight = p.sets[exercise].find { |s| s['name'] == set_group }['weight']
+    set_group_formatted = "  #{colourise("#{set_group} (#{weight} kg):", set_group == WORKING_SETS_LABEL ? :none : :grey)} #{format_set_completion_results(sets.map { |_, r| r })}"
     puts "  │ #{set_group_formatted}#{" " * (box_right_padding - decolourise(set_group_formatted).length)}│"
   end
 end
