@@ -22,6 +22,13 @@ def minimise_plate_changes(sets)
   #pp tree if DEBUG
   puts "Built plate change tree in #{Time.now - start_time} seconds" if DEBUG
   sets.each_with_index do |set, index|
+    if tree == LEAF
+      # TODO: I reached this edge case where a buddy is lifting empty bar as their working sets. I've addressed it by
+      #       sanitising the data before it gets to this point, but there is still a bug somewhere, so would be good
+      #       to track it down.
+      raise "Invalid plate change tree generated - reached leaf before traversing all sets"
+    end
+
     # Just pick the first valid minimum path if there are multiple with the same value
     set['plates'] = set['valid_plate_combinations'][tree.keys.first]
     tree = tree.values.first

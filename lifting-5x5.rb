@@ -20,7 +20,7 @@ SHOW_MINIMUM_PLATES = false
 
 def calculate_plates(weight)
   if weight < BAR_WEIGHT
-    puts "Weight must be greater than or equal to #{BAR_WEIGHT} kg."
+    puts colourise("Weight must be greater than or equal to #{BAR_WEIGHT} kg.", :red)
     return nil
   end
 
@@ -39,7 +39,7 @@ def calculate_plates(weight)
   end
 
   if remaining_weight > 0
-    puts "Cannot achieve the desired weight with the available plates for weight #{weight}."
+    puts colourise("Cannot achieve the desired weight with the available plates for weight #{weight}.", :yellow)
     return nil
   end
 
@@ -91,8 +91,8 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
 
   workout_sets = SETS[exercise]
 
-  workout = calculate_warmup_sets(exercise, target_weight, 'me') + [{
-              'lifter' => 'me',
+  workout = calculate_warmup_sets(exercise, target_weight, :me) + [{
+              'lifter' => :me,
               'name' => 'Working sets',
               'sets' => workout_sets['sets'],
               'reps' => workout_sets['reps'],
@@ -100,9 +100,12 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
               'minimum_plates' => calculate_plates(target_weight)
             }]
 
+  # If the target weight is just the bar then there are no warmups and no plate changes so we can skip all the buddy calculations
+  return minimise_plate_changes(workout) if target_weight == BAR_WEIGHT
+
   buddy_workouts = buddy_target_weights.map do |buddys_target_weight|
-    calculate_warmup_sets(exercise, buddys_target_weight, 'buddy') + [{
-      'lifter' => 'buddy',
+    calculate_warmup_sets(exercise, buddys_target_weight, :buddy) + [{
+      'lifter' => :buddy,
       'name' => 'Working sets',
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
@@ -112,17 +115,40 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
   end
 
   # Interleave all workouts
-  interleaved_workouts = workout
-  buddy_workouts.each do |buddy_workout|
-    # TODO Deal with situation where these are different lengths
-    interleaved_workouts = interleaved_workouts.zip(buddy_workout)
+  interleaved_workouts = []
+  WARMUP_SETS[exercise].each do |set|
+    set_name = set['name']
+    workout_set = workout.find { |s| s['name'] == set_name }
+    interleaved_workouts << workout_set unless workout_set.nil?
+    buddy_workouts.each do |buddy_workout|
+      buddy_workout_set = buddy_workout.find { |s| s['name'] == set_name }
+      interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == BAR_WEIGHT
+    end
   end
-  interleaved_workouts = interleaved_workouts.flatten
-  
-  pp workout
-  pp interleaved_workouts
+  interleaved_workouts << workout.find { |s| s['name'] == 'Working sets' }
+  buddy_workouts.each do |buddy_workout|
+    buddy_workout_set = buddy_workout.find { |s| s['name'] == 'Working sets' }
+    interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == BAR_WEIGHT
+  end
 
-  workout = minimise_plate_changes(interleaved_workouts).select { |w| w['lifter'] == 'me' }
+  interleaved_workouts.sort_by! { |s| [s['name'], s['weight']] }
+
+  # Remove buddy sets that are the same weight as an adjacent me set to simplify the minimisation algorithm
+  # Note that most warmups are only one set so we don't really need to do anything more complex for minimisation
+  interleaved_workouts.each_with_index do |set, index|
+    next if index == 0
+
+    previous_set = interleaved_workouts[index - 1]
+    next unless set['lifter'] == :buddy || previous_set['lifter'] == :buddy
+
+    if set['weight'] == previous_set['weight']
+      set['remove'] = true if set['lifter'] == :buddy
+      previous_set['remove'] = true if previous_set['lifter'] == :buddy
+    end
+  end
+  interleaved_workouts.reject! { |set| set['remove'] }
+
+  workout = minimise_plate_changes(interleaved_workouts).select { |w| w['lifter'] == :me }
 
   puts colourise("Calculated workout sets in #{Time.now - start_time} seconds", :grey)
 
@@ -201,14 +227,14 @@ while true
             when 2
               WORKOUT_B
             else
-              puts 'Invalid choice. Please enter 1 or 2.'
+              puts colourise('Invalid choice. Please enter 1 or 2.', :yellow)
               next
             end
   break
 end
 
 puts
-puts "Selected workout: #{workout.join(', ')}"
+puts colourise("Selected workout: #{workout.join(', ')}", :grey)
 
 workout_weights = {}
 
@@ -218,6 +244,7 @@ workout.each do |exercise|
   for person in [whoami] + buddies
     print "Enter #{person}'s target weight for #{exercise} (kg): "
     target_weight = gets.chomp.to_f
+    target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
 
     workout_weights[person] ||= {}
     workout_weights[person][exercise] = target_weight
