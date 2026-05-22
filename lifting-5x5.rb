@@ -7,14 +7,14 @@ require_relative 'util'
 require_relative 'values'
 
 # Validate plate configuration
-Raise 'Too many 0.25 kg plates' if PLATES[0.25] > 8
-Raise 'Too many 1.25 kg plates' if PLATES[1.25] > 4
-Raise 'Too many 2.5 kg plates' if PLATES[2.5] > 4
-Raise 'Too many 5 kg plates' if PLATES[5] > 4
-Raise 'Too many 10 kg plates' if PLATES[10] > 4
-Raise 'Too many 15 kg plates' if PLATES[15] > 4
-Raise 'Too many 20 kg plates' if PLATES[20] > 20
-Raise 'Too many 25 kg plates' if PLATES[25] > 20
+raise 'Too many 0.25 kg plates' if PLATES[0.25] > 8
+raise 'Too many 1.25 kg plates' if PLATES[1.25] > 4
+raise 'Too many 2.5 kg plates' if PLATES[2.5] > 4
+raise 'Too many 5 kg plates' if PLATES[5] > 4
+raise 'Too many 10 kg plates' if PLATES[10] > 4
+raise 'Too many 15 kg plates' if PLATES[15] > 4
+raise 'Too many 20 kg plates' if PLATES[20] > 20
+raise 'Too many 25 kg plates' if PLATES[25] > 20
 
 PLATE_SEPARATOR = '│'
 SHOW_MINIMUM_PLATES = false
