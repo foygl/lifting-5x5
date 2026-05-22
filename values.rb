@@ -2,11 +2,11 @@
 
 # frozen_string_literal: true
 
-SQUAT = 'squat'
-BENCH_PRESS = 'bench press'
-OVERHEAD_PRESS = 'overhead press'
-BARBELL_ROW = 'barbell row'
-DEADLIFT = 'deadlift'
+SQUAT = 'Squat'
+BENCH_PRESS = 'Bench Press'
+OVERHEAD_PRESS = 'Overhead Press'
+BARBELL_ROW = 'Barbell Row'
+DEADLIFT = 'Deadlift'
 
 WORKOUT_A = [SQUAT, BENCH_PRESS, BARBELL_ROW].freeze
 WORKOUT_B = [SQUAT, OVERHEAD_PRESS, DEADLIFT].freeze
@@ -79,18 +79,22 @@ SETS = {
 WARMUP_SETS = {
   SQUAT => [
     {
+      'name' => 'Warmup 1',
       'sets' => 2,
       'reps' => 5,
       'multiplier' => 0
     }, {
+      'name' => 'Warmup 2',
       'sets' => 1,
       'reps' => 5,
       'multiplier' => 0.4
     }, {
+      'name' => 'Warmup 3',
       'sets' => 1,
       'reps' => 3,
       'multiplier' => 0.6
     }, {
+      'name' => 'Warmup 4',
       'sets' => 1,
       'reps' => 2,
       'multiplier' => 0.8
@@ -98,18 +102,22 @@ WARMUP_SETS = {
   ],
   BENCH_PRESS => [
     {
+      'name' => 'Warmup 1',
       'sets' => 2,
       'reps' => 5,
       'multiplier' => 0
     }, {
+      'name' => 'Warmup 2',
       'sets' => 1,
       'reps' => 5,
       'multiplier' => 0.5
     }, {
+      'name' => 'Warmup 3',
       'sets' => 1,
       'reps' => 3,
       'multiplier' => 0.7
     }, {
+      'name' => 'Warmup 4',
       'sets' => 1,
       'reps' => 2,
       'multiplier' => 0.9
@@ -117,18 +125,22 @@ WARMUP_SETS = {
   ],
   OVERHEAD_PRESS => [
     {
+      'name' => 'Warmup 1',
       'sets' => 2,
       'reps' => 5,
       'multiplier' => 0
     }, {
+      'name' => 'Warmup 2',
       'sets' => 1,
       'reps' => 5,
       'multiplier' => 0.55
     }, {
+      'name' => 'Warmup 3',
       'sets' => 1,
       'reps' => 3,
       'multiplier' => 0.7
     }, {
+      'name' => 'Warmup 4',
       'sets' => 1,
       'reps' => 2,
       'multiplier' => 0.85
@@ -136,14 +148,17 @@ WARMUP_SETS = {
   ],
   BARBELL_ROW => [
     {
+      'name' => 'Warmup 1',
       'sets' => 2,
       'reps' => 5,
       'multiplier' => 0.4
     }, {
+      'name' => 'Warmup 2',
       'sets' => 1,
       'reps' => 3,
       'multiplier' => 0.7
     }, {
+      'name' => 'Warmup 3',
       'sets' => 1,
       'reps' => 2,
       'multiplier' => 0.9
@@ -151,14 +166,17 @@ WARMUP_SETS = {
   ],
   DEADLIFT => [
     {
+      'name' => 'Warmup 1',
       'sets' => 2,
       'reps' => 5,
       'multiplier' => 0.4
     }, {
+      'name' => 'Warmup 2',
       'sets' => 1,
       'reps' => 3,
       'multiplier' => 0.6
     }, {
+      'name' => 'Warmup 3',
       'sets' => 1,
       'reps' => 2,
       'multiplier' => 0.85

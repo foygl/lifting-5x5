@@ -71,6 +71,7 @@ def calculate_warmup_sets(exercise, target_weight, lifter)
 
     {
       'lifter' => lifter,
+      'name' => set['name'],
       'sets' => set['sets'],
       'reps' => set['reps'],
       'weight' => warmup_weight.to_f,
@@ -92,6 +93,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
 
   workout = calculate_warmup_sets(exercise, target_weight, 'me') + [{
               'lifter' => 'me',
+              'name' => 'Working sets',
               'sets' => workout_sets['sets'],
               'reps' => workout_sets['reps'],
               'weight' => target_weight.to_f,
@@ -101,6 +103,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
   buddy_workouts = buddy_target_weights.map do |buddys_target_weight|
     calculate_warmup_sets(exercise, buddys_target_weight, 'buddy') + [{
       'lifter' => 'buddy',
+      'name' => 'Working sets',
       'sets' => workout_sets['sets'],
       'reps' => workout_sets['reps'],
       'weight' => buddys_target_weight.to_f,
@@ -121,7 +124,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
 
   workout = minimise_plate_changes(interleaved_workouts).select { |w| w['lifter'] == 'me' }
 
-  puts "Calculated workout sets in #{Time.now - start_time} seconds"
+  puts colourise("Calculated workout sets in #{Time.now - start_time} seconds", :grey)
 
   workout
 end
@@ -171,6 +174,7 @@ end
 
 print 'Who is lifting?: '
 whoami = gets.chomp
+whoami = 'Anon' if whoami.empty?
 
 buddies = []
 while true
@@ -228,8 +232,18 @@ workout.each do |exercise|
 
   sets = calculate_workout(exercise, target_weight, buddies.map { |b| workout_weights[b][exercise] })
 
+  puts "  ┌────────────── Workout Summary ──────────────┐"
+  sets.each do |set|
+    # Need to calculate the displayed text width separately because of the later addition of colour codes
+    text_width = set['name'].length + 2 + set['sets'].to_s.length + 9 + set['reps'].to_s.length + 9 + set['weight'].to_s.length + 3
+    set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
+    puts "  │ #{set['summary']}#{" "* (44 - text_width)}│"
+  end
+  puts "  └─────────────────────────────────────────────┘"
+
+
   sets.each_with_index do |set, set_number|
-    puts "#{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
+    puts set['summary']
     display_bar_and_plates('Recommended plates per side', set['plates']) unless set['plates'].empty?
     if SHOW_MINIMUM_PLATES && !set['minimum_plates'].empty? && set['minimum_plates'].sort != set['plates'].sort
       puts "  │"
