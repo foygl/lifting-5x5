@@ -259,14 +259,14 @@ workout.each do |exercise|
 
   sets = calculate_workout(exercise, target_weight, buddies.map { |b| workout_weights[b][exercise] })
 
-  puts "  ┌────────────── Workout Summary ──────────────┐"
+  puts "  ┌────────────── Exercise Summary ──────────────┐"
   sets.each do |set|
     # Need to calculate the displayed text width separately because of the later addition of colour codes
     text_width = set['name'].length + 2 + set['sets'].to_s.length + 9 + set['reps'].to_s.length + 9 + set['weight'].to_s.length + 3
     set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
-    puts "  │ #{set['summary']}#{" "* (44 - text_width)}│"
+    puts "  │ #{set['summary']}#{" "* (45 - text_width)}│"
   end
-  puts "  └─────────────────────────────────────────────┘"
+  puts "  └──────────────────────────────────────────────┘"
 
 
   sets.each_with_index do |set, set_number|
