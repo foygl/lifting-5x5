@@ -60,7 +60,18 @@ class Persistence
 
     @@profile_state['progression'] ||= DEFAULT_PROGRESSION
 
-    @@profile_state['progression'][exercise]['initial_weight']
+    p = @@profile_state['progression'][exercise]
+    c = current_progress(exercise)
+
+    if c.key?('successes') && c['successes'] >= p['successes_before_increment']
+      c['last_weight'] + p['increment']
+    elsif c.key?('failures') && c['failures'] >= p['failures_before_deload']
+      c['last_weight'] - (c['last_weight'] * p['deload_percentage'] / 100.0)
+    elsif c.key?('failures') && c['failures'] > 0
+      c['last_weight']
+    else
+      p['initial_weight']
+    end
   end
 
   def current_progress(exercise)
@@ -80,8 +91,8 @@ class Persistence
     else
       c['last_weight'] = weight
       c['successes'] = 1
-      c['failures'] = 0
     end
+    c['failures'] = 0
   end
 
   def exercise_unsuccessful(exercise, weight)
@@ -95,9 +106,9 @@ class Persistence
       c['failures'] += 1
     else
       c['last_weight'] = weight
-      c['successes'] = 0
       c['failures'] = 1
     end
+    c['successes'] = 0
   end
 
   def get_workout_state

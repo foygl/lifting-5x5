@@ -308,7 +308,7 @@ p.workout.each do |exercise|
             puts "\n  │ Cooldown interrupted. Proceeding to next set."
           end
 
-          #`command -v espeak && espeak "Time for the next set #{whoami}"`
+          `command -v espeak && espeak "Time for the next set #{whoami}"`
         end
 
         { 'actual' => successful_reps, 'target' => set['reps'] }
