@@ -241,9 +241,10 @@ if p.workout_weights.empty?
 
   p.workout.each do |exercise|
     for person in [whoami] + p.buddies
-      print "Enter #{person}'s target weight for #{exercise} (kg): "
-      target_weight = gets.chomp.to_f
-      target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
+      print "Enter #{person}'s target weight for #{exercise} (kg) [#{p.target_weight(exercise, person)}]: "
+      target_weight = gets.chomp
+      target_weight = p.target_weight(exercise, person) if target_weight.empty?
+      target_weight = sanitise_weight_to_lift(target_weight.to_f, MINIMUM_INCREMENT)
 
       p.workout_weights[person.downcase] ||= {}
       p.workout_weights[person.downcase][exercise] = target_weight
@@ -337,3 +338,5 @@ p.successful_reps.each_with_index do |exercise_results, i|
   end
 end
   puts "  └────────────────────────────────────────────────────────────┘"
+
+  p.flush_profile_state

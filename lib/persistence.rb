@@ -3,6 +3,7 @@
 require 'date'
 require 'json'
 
+require_relative '../config/values'
 require_relative 'util'
 
 class Persistence
@@ -10,6 +11,8 @@ class Persistence
   @@directory = 'db'
 
   def initialize(lifter, date = nil)
+     @@lifter = lifter.downcase
+
     if date.nil?
       @@date = Date.today.iso8601
     else
@@ -22,9 +25,9 @@ class Persistence
       end
     end
 
-    @@workout_filename = "#{@@directory}/#{lifter.downcase}_#{@@date}.json"
+    @@workout_filename = "#{@@directory}/#{@@lifter}_#{@@date}.json"
     get_workout_state
-    @@profile_filename = "#{@@directory}/#{lifter.downcase}_profile.json"
+    @@profile_filename = "#{@@directory}/#{@@lifter}_profile.json"
     get_profile_state
   end
 
@@ -54,6 +57,14 @@ class Persistence
 
   def successful_reps
     @@workout_state['successful_reps'] ||= {}
+  end
+
+  def target_weight(exercise, lifter)
+    return DEFAULT_PROGRESSION[exercise]['initial_weight'] unless lifter.downcase == @@lifter
+
+    @@profile_state['progression'] ||= DEFAULT_PROGRESSION
+
+    @@profile_state['progression'][exercise]['initial_weight']
   end
 
   def get_workout_state
