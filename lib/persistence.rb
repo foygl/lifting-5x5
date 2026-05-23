@@ -9,8 +9,20 @@ class Persistence
 
   @@directory = 'db'
 
-  def initialize(lifter)
-    @@filename = "#{@@directory}/#{lifter.downcase}_#{Date.today.iso8601}.json"
+  def initialize(lifter, date = nil)
+    if date.nil?
+      date = Date.today.iso8601
+    else
+      # Validate that this is in the right format
+      begin
+        date = Date.iso8601(date)
+      rescue Date::Error
+        puts colourise("Invalid date '#{date}'. Please use format YYYY-MM-DD", :red)
+        exit 1
+      end
+    end
+
+    @@filename = "#{@@directory}/#{lifter.downcase}_#{date}.json"
     get_state
   end
 

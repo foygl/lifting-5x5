@@ -185,7 +185,8 @@ def format_set_completion_results(set_completion_results)
   end.join(', ')
 end
 
-whoami = ARGV[0] unless ARGV.empty?
+whoami = ARGV[0] if ARGV.length >= 1
+date = ARGV[1] if ARGV.length >= 2
 ARGV.clear
 
 if whoami.nil?
@@ -194,7 +195,7 @@ if whoami.nil?
   whoami = 'Anon' if whoami.empty?
 end
 
-p = Persistence.new(whoami)
+p = Persistence.new(whoami, date)
 
 if p.buddies.empty? && p.workout.nil?
   while true
