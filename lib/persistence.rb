@@ -14,7 +14,7 @@ class Persistence
      @@lifter = lifter.downcase
 
     if date.nil?
-      @@date = Date.today.iso8601
+      @@date = Date.today
     else
       # Validate that this is in the right format
       begin
@@ -25,14 +25,10 @@ class Persistence
       end
     end
 
-    @@workout_filename = "#{@@directory}/#{@@lifter}_#{@@date}.json"
+    @@workout_filename = "#{@@directory}/#{@@lifter}_#{@@date.iso8601}.json"
     get_workout_state
     @@profile_filename = "#{@@directory}/#{@@lifter}_profile.json"
     get_profile_state
-  end
-
-  def date
-    @@date
   end
 
   def buddies
@@ -67,6 +63,43 @@ class Persistence
     @@profile_state['progression'][exercise]['initial_weight']
   end
 
+  def current_progress(exercise)
+    @@profile_state['current_progress'] ||= {}
+    @@profile_state['current_progress'][exercise] ||= {}
+  end
+
+  def exercise_successful(exercise, weight)
+    c = current_progress(exercise)
+
+    # Don't update the record if it has already been written
+    return if !c['last_date'].nil? && Date.iso8601(c['last_date']) >= @@date
+
+    c['last_date'] = @@date.iso8601
+    if c['last_weight'] == weight
+      c['successes'] += 1
+    else
+      c['last_weight'] = weight
+      c['successes'] = 1
+      c['failures'] = 0
+    end
+  end
+
+  def exercise_unsuccessful(exercise, weight)
+    c = current_progress(exercise)
+
+    # Don't update the record if it has already been written
+    return if !c['last_date'].nil? && Date.iso8601(c['last_date']) >= @@date
+
+    c['last_date'] = @@date.iso8601
+    if c['last_weight'] == weight
+      c['failures'] += 1
+    else
+      c['last_weight'] = weight
+      c['successes'] = 0
+      c['failures'] = 1
+    end
+  end
+
   def get_workout_state
     if File.exist?(@@workout_filename)
       puts colourise("Loaded existing state from #{@@workout_filename}", :grey)
@@ -97,7 +130,7 @@ class Persistence
     Dir.mkdir(@@directory) unless File.exist?(@@directory)
 
     File.open(@@profile_filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
-      f.write @@profile_state.to_json
+      f.write JSON.pretty_generate(@@profile_state)
     end
   end
 end

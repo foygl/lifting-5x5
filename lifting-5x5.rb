@@ -308,7 +308,7 @@ p.workout.each do |exercise|
             puts "\n  │ Cooldown interrupted. Proceeding to next set."
           end
 
-          `command -v espeak && espeak "Time for the next set #{whoami}"`
+          #`command -v espeak && espeak "Time for the next set #{whoami}"`
         end
 
         { 'actual' => successful_reps, 'target' => set['reps'] }
@@ -319,6 +319,12 @@ p.workout.each do |exercise|
       set_completion_results << p.successful_reps[exercise][set['name']][i.to_s]
     end
     puts "  │ #{colourise("Finished sets: #{format_set_completion_results(set_completion_results)}", :cyan)}"
+  end
+
+  if p.successful_reps[exercise][WORKING_SETS_LABEL].values.any? { |s| s['actual'] < s['target'] }
+    p.exercise_unsuccessful(exercise, target_weight)
+  else
+    p.exercise_successful(exercise, target_weight)
   end
 end
 
@@ -337,6 +343,6 @@ p.successful_reps.each_with_index do |exercise_results, i|
     puts "  │ #{set_group_formatted}#{" " * (box_right_padding - decolourise(set_group_formatted).length)}│"
   end
 end
-  puts "  └────────────────────────────────────────────────────────────┘"
+puts "  └────────────────────────────────────────────────────────────┘"
 
-  p.flush_profile_state
+p.flush_profile_state
