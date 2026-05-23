@@ -11,59 +11,82 @@ class Persistence
 
   def initialize(lifter, date = nil)
     if date.nil?
-      date = Date.today.iso8601
+      @@date = Date.today.iso8601
     else
       # Validate that this is in the right format
       begin
-        date = Date.iso8601(date)
+        @@date = Date.iso8601(date)
       rescue Date::Error
         puts colourise("Invalid date '#{date}'. Please use format YYYY-MM-DD", :red)
         exit 1
       end
     end
 
-    @@filename = "#{@@directory}/#{lifter.downcase}_#{date}.json"
-    get_state
+    @@workout_filename = "#{@@directory}/#{lifter.downcase}_#{@@date}.json"
+    get_workout_state
+    @@profile_filename = "#{@@directory}/#{lifter.downcase}_profile.json"
+    get_profile_state
+  end
+
+  def date
+    @@date
   end
 
   def buddies
-    @@state['buddies'] ||= []
+    @@workout_state['buddies'] ||= []
   end
 
   def workout
-    @@state['workout']
+    @@workout_state['workout']
   end
 
   def workout=(workout)
-    @@state['workout'] = workout
+    @@workout_state['workout'] = workout
   end
 
   def workout_weights
-    @@state['workout_weights'] ||= {}
+    @@workout_state['workout_weights'] ||= {}
   end
 
   def sets
-    @@state['sets'] ||= {}
+    @@workout_state['sets'] ||= {}
   end
 
   def successful_reps
-    @@state['successful_reps'] ||= {}
+    @@workout_state['successful_reps'] ||= {}
   end
 
-  def get_state
-    if File.exist?(@@filename)
-      puts colourise("Loaded existing state from #{@@filename}", :grey)
-      @@state = JSON.parse(File.read(@@filename))
+  def get_workout_state
+    if File.exist?(@@workout_filename)
+      puts colourise("Loaded existing state from #{@@workout_filename}", :grey)
+      @@workout_state = JSON.parse(File.read(@@workout_filename))
     else
-      @@state = {}
+      @@workout_state = {}
     end
   end
 
-  def flush_state
+  def get_profile_state
+    if File.exist?(@@profile_filename)
+      puts colourise("Loaded existing state from #{@@profile_filename}", :grey)
+      @@profile_state = JSON.parse(File.read(@@profile_filename))
+    else
+      @@profile_state = {}
+    end
+  end
+
+  def flush_workout_state
     Dir.mkdir(@@directory) unless File.exist?(@@directory)
 
-    File.open(@@filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
-      f.write @@state.to_json
+    File.open(@@workout_filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
+      f.write @@workout_state.to_json
+    end
+  end
+
+  def flush_profile_state
+    Dir.mkdir(@@directory) unless File.exist?(@@directory)
+
+    File.open(@@profile_filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
+      f.write @@profile_state.to_json
     end
   end
 end

@@ -206,7 +206,7 @@ if p.buddies.empty? && p.workout.nil?
 
     p.buddies << buddy
   end
-  p.flush_state
+  p.flush_workout_state
 end
 
 puts
@@ -230,7 +230,7 @@ if p.workout.nil?
                 end
     break
   end
-  p.flush_state
+  p.flush_workout_state
 end
 
 puts
@@ -249,7 +249,7 @@ if p.workout_weights.empty?
       p.workout_weights[person.downcase][exercise] = target_weight
     end
   end
-  p.flush_state
+  p.flush_workout_state
 end
 
 p.workout.each do |exercise|
@@ -267,7 +267,7 @@ p.workout.each do |exercise|
   end
   puts "  └──────────────────────────────────────────────┘"
 
-  p.flush_state
+  p.flush_workout_state
 
   p.sets[exercise].each_with_index do |set, set_number|
     puts set['summary']
@@ -313,7 +313,7 @@ p.workout.each do |exercise|
         { 'actual' => successful_reps, 'target' => set['reps'] }
       end
 
-      p.flush_state
+      p.flush_workout_state
 
       set_completion_results << p.successful_reps[exercise][set['name']][i.to_s]
     end
