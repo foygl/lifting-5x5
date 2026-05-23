@@ -73,6 +73,44 @@ SETS = {
   }
 }.freeze
 
+DEFAULT_PROGRESSION = {
+  SQUAT => {
+    'initial_weight' => 20,
+    'increment' => 2.5,
+    'successes_before_increment' => 1,
+    'deload_percentage' => 10,
+    'failures_before_deload' => 3
+  },
+  BENCH_PRESS => {
+    'initial_weight' => 20,
+    'increment' => 2.5,
+    'successes_before_increment' => 1,
+    'deload_percentage' => 10,
+    'failures_before_deload' => 3
+  },
+  OVERHEAD_PRESS => {
+    'initial_weight' => 20,
+    'increment' => 2.5,
+    'successes_before_increment' => 1,
+    'deload_percentage' => 10,
+    'failures_before_deload' => 3
+  },
+  BARBELL_ROW => {
+    'initial_weight' => 30,
+    'increment' => 2.5,
+    'successes_before_increment' => 1,
+    'deload_percentage' => 10,
+    'failures_before_deload' => 3
+  },
+  DEADLIFT => {
+    'initial_weight' => 40,
+    'increment' => 5,
+    'successes_before_increment' => 1,
+    'deload_percentage' => 10,
+    'failures_before_deload' => 3
+  }
+}.freeze
+
 # Based on https://github.com/nmunson/warmup-reps/blob/master/programs/program_2.json
 WARMUP_SETS = {
   SQUAT => [
