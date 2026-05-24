@@ -79,10 +79,15 @@ class Persistence
     c = current_progress(profile, exercise)
 
     if c.key?('successes') && c['successes'] >= p['successes_before_increment']
+      puts colourise("Incrementing weight for #{exercise} by #{p['increment']} kg", :grey)
       c['last_weight'] + p['increment']
     elsif c.key?('failures') && c['failures'] >= p['failures_before_deload']
+      puts colourise("Decrementing weight for #{exercise} by #{p['deload_percentage']}%", :grey)
       c['last_weight'] - (c['last_weight'] * p['deload_percentage'] / 100.0)
     elsif c.key?('failures') && c['failures'] > 0
+      puts colourise("Keeping weight for #{exercise} the same due to previous failure", :grey)
+      c['last_weight']
+    elsif c.key?('successes') || c.key?('failures')
       c['last_weight']
     else
       p['initial_weight']
