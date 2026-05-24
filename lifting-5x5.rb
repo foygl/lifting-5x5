@@ -241,9 +241,11 @@ if p.workout_weights.empty?
 
   p.workout.each do |exercise|
     for person in [whoami] + p.buddies
-      print "Enter #{person}'s target weight for #{exercise} (kg) [#{p.target_weight(exercise, person)}]: "
+      proposed_target_weight = p.target_weight(exercise, person)
+:qa
+      print "Enter #{person}'s target weight for #{exercise} (kg) [#{proposed_target_weight}]: "
       target_weight = gets.chomp
-      target_weight = p.target_weight(exercise, person) if target_weight.empty?
+      target_weight = proposed_target_weight if target_weight.empty?
       target_weight = sanitise_weight_to_lift(target_weight.to_f, MINIMUM_INCREMENT)
 
       p.workout_weights[person.downcase] ||= {}
