@@ -27,8 +27,12 @@ class Persistence
 
     @@workout_filename = "#{@@directory}/#{@@lifter}_#{@@date.iso8601}.json"
     get_workout_state
-    @@profile_filename = "#{@@directory}/#{@@lifter}_profile.json"
+    @@profile_filename = profile_filename(@@lifter)
     get_profile_state
+  end
+
+  def profile_filename(lifter)
+    "#{@@directory}/#{lifter}_profile.json"
   end
 
   def buddies
@@ -56,12 +60,23 @@ class Persistence
   end
 
   def target_weight(exercise, lifter)
-    return DEFAULT_PROGRESSION[exercise]['initial_weight'] unless lifter.downcase == @@lifter
+    if lifter.downcase == @@lifter
+      target_weight_from_profile(@@profile_state, exercise)
+    else
+      if File.exist?(profile_filename(lifter.downcase))
+        buddy_profile_state = JSON.parse(File.read(profile_filename(lifter.downcase)))
+        target_weight_from_profile(buddy_profile_state, exercise)
+      else
+        DEFAULT_PROGRESSION[exercise]['initial_weight']
+      end
+    end
+  end
 
-    @@profile_state['progression'] ||= DEFAULT_PROGRESSION
+  def target_weight_from_profile(profile, exercise)
+    profile['progression'] ||= DEFAULT_PROGRESSION
 
-    p = @@profile_state['progression'][exercise]
-    c = current_progress(exercise)
+    p = profile['progression'][exercise]
+    c = current_progress(profile, exercise)
 
     if c.key?('successes') && c['successes'] >= p['successes_before_increment']
       c['last_weight'] + p['increment']
@@ -74,13 +89,13 @@ class Persistence
     end
   end
 
-  def current_progress(exercise)
-    @@profile_state['current_progress'] ||= {}
-    @@profile_state['current_progress'][exercise] ||= {}
+  def current_progress(profile, exercise)
+    profile['current_progress'] ||= {}
+    profile['current_progress'][exercise] ||= {}
   end
 
   def exercise_successful(exercise, weight)
-    c = current_progress(exercise)
+    c = current_progress(@@profile_state, exercise)
 
     # Don't update the record if it has already been written
     return if !c['last_date'].nil? && Date.iso8601(c['last_date']) >= @@date
@@ -96,7 +111,7 @@ class Persistence
   end
 
   def exercise_unsuccessful(exercise, weight)
-    c = current_progress(exercise)
+    c = current_progress(@@profile_state, exercise)
 
     # Don't update the record if it has already been written
     return if !c['last_date'].nil? && Date.iso8601(c['last_date']) >= @@date
