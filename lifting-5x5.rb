@@ -217,6 +217,7 @@ if p.workout.nil?
   puts 'Select workout:'
   puts " 1. Workout A (#{WORKOUT_A.join(', ')})"
   puts " 2. Workout B (#{WORKOUT_B.join(', ')})"
+  print "Enter 1 or 2#{p.next_workout.nil? ? '' : " [#{p.next_workout == WORKOUT_A ? 1 : 2}]"}: "
   while true
     workout_choice = gets.chomp.to_i
     p.workout = case workout_choice
@@ -225,8 +226,12 @@ if p.workout.nil?
                 when 2
                   WORKOUT_B
                 else
-                  puts colourise('Invalid choice. Please enter 1 or 2.', :yellow)
-                  next
+                  if !p.next_workout.nil? && workout_choice == 0
+                    p.next_workout
+                  else
+                    puts colourise('Invalid choice. Please enter 1 or 2.', :yellow)
+                    next
+                  end
                 end
     break
   end

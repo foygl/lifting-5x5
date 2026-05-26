@@ -131,6 +131,25 @@ class Persistence
     c['successes'] = 0
   end
 
+  def next_workout()
+    return nil unless @@profile_state.key?('current_progress')
+
+    last_barbell_row_date = @@profile_state['current_progress'][BARBELL_ROW]['last_date'] rescue nil
+    last_deadlift_date = @@profile_state['current_progress'][DEADLIFT]['last_date'] rescue nil
+
+    if last_barbell_row_date.nil?
+      return WORKOUT_A
+    elsif last_deadlift_date.nil?
+      return WORKOUT_B
+    else
+      if Date.iso8601(last_barbell_row_date) > Date.iso8601(last_deadlift_date)
+        return WORKOUT_B
+      else
+        return WORKOUT_A
+      end
+    end
+  end
+
   def get_workout_state
     if File.exist?(@@workout_filename)
       puts colourise("Loaded existing state from #{@@workout_filename}", :grey)
