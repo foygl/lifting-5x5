@@ -219,3 +219,5 @@ WARMUP_SETS = {
     }
   ]
 }.freeze
+
+WORKING_SETS_LABEL = 'Working sets'.freeze

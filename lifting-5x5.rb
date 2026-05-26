@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'config/values'
+require_relative 'lib/charts'
 require_relative 'lib/persistence'
 require_relative 'lib/plate_change_minimiser'
 require_relative 'lib/util'
@@ -19,8 +20,6 @@ raise 'Too many 25 kg plates' if PLATES[25] > 20
 
 PLATE_SEPARATOR = '│'
 SHOW_MINIMUM_PLATES = false
-
-WORKING_SETS_LABEL = 'Working sets'
 
 def calculate_plates(weight)
   if weight < BAR_WEIGHT
@@ -353,3 +352,5 @@ end
 puts "  └────────────────────────────────────────────────────────────┘"
 
 p.flush_profile_state
+
+print_progress_charts(whoami)
