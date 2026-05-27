@@ -1,37 +1,21 @@
 # Lifting 5x5
 
-## Notes
+This is a quick and dirty script that I wrote for me and my partner to track our progress on the StrongLifts 5x5 program (not affiliated).
 
-### Warmups from StrongLifts 5x5 app
+One of the **killer features** is a "buddy mode" plate calculator, that makes it easier to share equipment and interleave your workouts even if you are progressing at different rates.
 
-```yaml
-squat:
-bench press:
-overhead press:
-  - 30: [5x15, 5x15]
-  - 35: [5x15, 5x15, 3x25]
-  - 45: [5x15, 5x15, 3x35]
-  - 55: [5x15, 5x15, 5x35, 3x45]
-  - 65: [5x15, 5x15, 5x35, 3x55]
-  - 75: [5x15, 5x15, 5x35, 5x55, 3x65]
-  - 85: [5x15, 5x15, 5x35, 5x55, 3x75]
-  - 95: [5x15, 5x15, 5x35, 5x55, 3x75, 2x85]
-  - 105: [5x15, 5x15, 5x35, 5x55, 3x75, 2x95]
-  - 115: [5x15, 5x15, 5x35, 5x55, 3x75, 2x95, 1x105]
-  - 125: [5x15, 5x15, 5x35, 5x55, 3x75, 2x95, 1x115]
+The main reason I threw this together is that didn't want to pay an app subscription for something that is just a glorified calculator.
 
-barbell row:
-deadlift:
-  - 35: [5x25]
-  - 45: [5x35]
-  - 55: [5x35, 5x45]
-  - 65: [5x35, 5x55]
-  - 70: [5x55]
-  - 75: [5x55, 5x65]
-  - 85: [5x55, 5x65, 3x75]
-  - 90: [5x55, 5x75]
-  - 95: [5x55, 5x75, 3x85]
-  - 105: [5x55, 5x75, 3x95]
-  - 115: [5x55, 5x75, 5x95, 3x105]
-  - 125: [5x55, 5x75, 5x95, 3x115]
-```
+I kept it as core Ruby with no external dependencies, so it should be trivial to run on any machine with Ruby installed (on Linux or Mac at least).
+
+## Tips
+
+- You can do some advanced configuration by editing json files. You should read the code to find out more!
+- You probably want to back up the contents of `db` somewhere.
+
+## Disclaimers
+
+- There may be bugs! (I will fix them as I find them)
+- It may be incomplete or more complex to use as you advance on the program
+- Where testing exists it is pretty basic and in no way covers all edge cases
+- This script is really a prototype for an app that I may never build!
