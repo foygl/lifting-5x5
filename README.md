@@ -8,6 +8,8 @@ The main reason I threw this together is that didn't want to pay an app subscrip
 
 I kept it as core Ruby with no external dependencies, so it should be trivial to run on any machine with Ruby installed (on Linux or Mac at least).
 
+![Basic operation of the script](/assets/images/basic_operation.png)
+
 ## Tips
 
 - You can do some advanced configuration by editing json files. You should read the code to find out more!
