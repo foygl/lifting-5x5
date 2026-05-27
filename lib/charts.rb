@@ -27,7 +27,15 @@ def print_progress_charts(person)
     workout_data = JSON.parse(File.read(workout_file))
     workout_date = Date.iso8601(workout_file.match(/#{DIRECTORY}\/#{person}_(\d{4}-\d{2}-\d{2})\.json/)[1])
     if workout_date >= Date.today - DAYS_TO_SHOW
+      next unless workout_data.key?('workout')
       workout_data['workout'].each do |exercise|
+        next unless workout_data.key?('workout_weights')
+        next unless workout_data['workout_weights'].key?(person)
+        next unless workout_data['workout_weights'][person].key?(exercise)
+        next unless workout_data.key?('successful_reps')
+        next unless workout_data['successful_reps'].key?(exercise)
+        next unless workout_data['successful_reps'][exercise].key?(WORKING_SETS_LABEL)
+
         workouts[exercise] ||= {}
         workouts[exercise][workout_date] ||= {
           'weight' => workout_data['workout_weights'][person][exercise],
