@@ -320,22 +320,44 @@ p.workout.each do |exercise|
           begin
             countdown = cooldown_time
             while countdown > 0
-              print "  │ Wait #{colourise(countdown, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
-              sleep(1)
-              countdown -= 1
+              print "  │ Wait #{colourise(countdown.floor, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
+              sleep(0.1)
+              countdown -= 0.1
               # Clear the contents of the current line
               print "\033[0K\r"
+
+              # Check if any keys were pressed while we were waiting
               pressed_keys_lock.synchronize do
                 while pressed_key = pressed_keys.shift
                   case pressed_key
-                  when "\u0003", 'x', 'q', "\e"
+                  when "\u0003", 'x', 'q'
                     countdown = 0
                     puts "  │ Cooldown interrupted. Proceeding to next set."
                     print "\033[0K\r"
                     pressed_keys.clear
-                  when '+', '=', 'A' # A is last char of up arrow
+                  when "\e"
+                    case pressed_keys.shift
+                    when nil # Escape key
+                      countdown = 0
+                      puts "  │ Cooldown interrupted. Proceeding to next set."
+                      print "\033[0K\r"
+                    when '['
+                      case next_key = pressed_keys.shift
+                      when 'A' # Up arrow
+                        countdown += 30
+                      when 'B' # Down arrow
+                        countdown -= 30
+                      when '5' # Page up
+                        countdown += 60
+                      when '6' # Page down
+                        countdown -= 60
+                      end
+                    end
+                    # Clear anything recorded after the escape sequence to avoid weirdness
+                    pressed_keys.clear unless pressed_keys.first == "\e"
+                  when '+', '='
                     countdown += 30
-                  when '-', '_', 'B' # B is last char of down arrow
+                  when '-', '_'
                     countdown -= 30
                   end
                 end
