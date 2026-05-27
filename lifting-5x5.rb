@@ -197,12 +197,12 @@ if whoami.nil?
   whoami = 'Anon' if whoami.empty?
 end
 
+p = Persistence.new(whoami, date)
+
 puts "Welcome #{whoami}. Here is your current progress:"
 
 print_progress_charts(whoami)
 puts
-
-p = Persistence.new(whoami, date)
 
 if p.buddies.empty? && p.workout.nil?
   while true
