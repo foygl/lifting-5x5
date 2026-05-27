@@ -8,6 +8,9 @@ require_relative 'lib/persistence'
 require_relative 'lib/plate_change_minimiser'
 require_relative 'lib/util'
 
+require 'io/console'
+require 'monitor'
+
 # Validate plate configuration
 raise 'Too many 0.25 kg plates' if PLATES[0.25] > 8
 raise 'Too many 1.25 kg plates' if PLATES[1.25] > 4
@@ -303,16 +306,46 @@ p.workout.each do |exercise|
         unless i == set['sets']
           cooldown_time = successful_reps < set['reps'] ? COOLDOWN_SECONDS_ON_FAILURE : COOLDOWN_SECONDS_ON_SUCCESS
 
+          pressed_keys = []
+          pressed_keys_lock = Monitor.new
+          t = Thread.new do
+            while true
+              c = STDIN.getch
+              pressed_keys_lock.synchronize do
+                pressed_keys << c
+              end
+            end
+          end
+
           begin
-            cooldown_time.downto(1).each do |t|
-              print "  │ Wait #{colourise(t, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
+            countdown = cooldown_time
+            while countdown > 0
+              print "  │ Wait #{colourise(countdown, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
               sleep(1)
+              countdown -= 1
               # Clear the contents of the current line
               print "\033[0K\r"
+              pressed_keys_lock.synchronize do
+                while pressed_key = pressed_keys.shift
+                  case pressed_key
+                  when "\u0003", 'x', 'q', "\e"
+                    countdown = 0
+                    puts "  │ Cooldown interrupted. Proceeding to next set."
+                    print "\033[0K\r"
+                    pressed_keys.clear
+                  when '+', '=', 'A' # A is last char of up arrow
+                    countdown += 30
+                  when '-', '_', 'B' # B is last char of down arrow
+                    countdown -= 30
+                  end
+                end
+              end
             end
           rescue Interrupt
             puts "\n  │ Cooldown interrupted. Proceeding to next set."
           end
+
+          t.kill
 
           `command -v espeak && espeak "Time for the next set #{whoami}"`
         end
