@@ -19,7 +19,11 @@ def print_progress_charts(person)
   # Workout data structure: { exercise => { date => { 'weight' => weight, 'success' => SUCCESS_LEVELS } } }
   workouts = {}
 
-  Dir.glob(File.join(DIRECTORY, "#{person}_*-*-*.json")).each do |workout_file|
+  workout_files = Dir.glob(File.join(DIRECTORY, "#{person}_*-*-*.json"))
+
+  puts colourise("No progress files found", :grey) if workout_files.empty?
+
+  workout_files.each do |workout_file|
     workout_data = JSON.parse(File.read(workout_file))
     workout_date = Date.iso8601(workout_file.match(/#{DIRECTORY}\/#{person}_(\d{4}-\d{2}-\d{2})\.json/)[1])
     if workout_date >= Date.today - DAYS_TO_SHOW
