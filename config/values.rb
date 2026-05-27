@@ -9,6 +9,8 @@ DEADLIFT = 'Deadlift'
 WORKOUT_A = [SQUAT, BENCH_PRESS, BARBELL_ROW].freeze
 WORKOUT_B = [SQUAT, OVERHEAD_PRESS, DEADLIFT].freeze
 
+# Women's Olympic barbell: 15 kg
+# Men's Olympic barbell: 20 kg
 BAR_WEIGHT = 15
 
 PLATES = {
