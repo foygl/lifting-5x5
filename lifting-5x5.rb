@@ -276,7 +276,7 @@ p.workout.each do |exercise|
 
   p.flush_workout_state
 
-  p.sets[exercise].each_with_index do |set, set_number|
+  p.sets[exercise].each do |set|
     puts set['summary']
     display_bar_and_plates('Recommended plates per side', set['plates']) unless set['plates'].empty?
     if SHOW_MINIMUM_PLATES && !set['minimum_plates'].empty? && set['minimum_plates'].sort != set['plates'].sort
@@ -300,7 +300,7 @@ p.workout.each do |exercise|
           puts colourise("  │ Only #{successful_reps} reps completed. Consider reducing the weight next time.", :red)
         end
 
-        unless set_number == p.sets[exercise].length
+        unless i == set['sets']
           cooldown_time = successful_reps < set['reps'] ? COOLDOWN_SECONDS_ON_FAILURE : COOLDOWN_SECONDS_ON_SUCCESS
 
           begin
