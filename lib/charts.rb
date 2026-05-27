@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-DAYS_TO_SHOW = 45.freeze
+require_relative '../config/values'
+require_relative 'util'
 
-DIRECTORY = 'db'.freeze
+DAYS_TO_SHOW = 45
+
+DIRECTORY = 'db'
 
 SUCCESS_LEVELS = {
   'success' => :green,
   'some_failed' => :yellow,
   'all_failed' => :red
-}
-
-require_relative '../config/values'
-require_relative 'util'
+}.freeze
 
 def print_progress_charts(person)
   person = person.downcase

@@ -9,19 +9,20 @@ DEADLIFT = 'Deadlift'
 WORKOUT_A = [SQUAT, BENCH_PRESS, BARBELL_ROW].freeze
 WORKOUT_B = [SQUAT, OVERHEAD_PRESS, DEADLIFT].freeze
 
+# Override this in db/<username>_profile.json { "config" : { "UNIT" : ... } }
 $unit = 'kg'
 
 # Women's Olympic barbell: 15 kg (~33 lbs)
 # Men's Olympic barbell: 20 kg (~44 lbs)
 # Override this in db/<username>_profile.json { "config" : { "BAR_WEIGHT" : ... } }
 $bar_weight = {
-  "kg" => 20,
-  "lbs" => 44
+  'kg' => 20,
+  'lbs' => 44
 }
 
 # Override this in db/<username>_profile.json { "config" : { "PLATES" : ... } }
 $plates = {
-  "kg" => {
+  'kg' => {
     0.25 => 0, # Should max this at 8
     1.25 => 4, # Should max this at 4
     2.5 => 4,  # Should max this at 4
@@ -31,7 +32,7 @@ $plates = {
     20 => 2,   # Should max this at 20
     25 => 0    # Should max this at 20
   },
-  "lbs" => {
+  'lbs' => {
     0.5 => 0,  # Should max this at 8
     2.5 => 4,  # Should max this at 4
     5 => 4,    # Should max this at 4
@@ -44,7 +45,7 @@ $plates = {
 }
 
 PLATE_COLOURS = {
-  "kg" => {
+  'kg' => {
     0.25 => :bright_red,
     1.25 => :bright_magenta,
     2.5 => :bright_cyan,
@@ -54,7 +55,7 @@ PLATE_COLOURS = {
     20 => :bright_blue,
     25 => :red
   },
-  "lbs" => {
+  'lbs' => {
     0.5 => :bright_red,
     2.5 => :bright_magenta,
     5 => :bright_cyan,
@@ -72,20 +73,20 @@ end
 
 # We don't need precise fractional plates for warmups, so this keeps things simple
 MINIMUM_WARMUP_INCREMENT = {
-  "kg" => 5,
-  "lbs" => 10
+  'kg' => 5,
+  'lbs' => 10
 }.freeze
 
 # The threshold at which we start adding warmup sets
 ADD_WARMUPS_THRESHOLD = {
-  "kg" => 30,
-  "lbs" => 65
+  'kg' => 30,
+  'lbs' => 65
 }.freeze
 
 # This is used to ensure that the maximum warmup weight is at least this much less than the target weight
 MIN_WARMUP_WEIGHT_DIFFERENCE = {
-  "kg" => 10,
-  "lbs" => 25
+  'kg' => 10,
+  'lbs' => 25
 }.freeze
 
 COOLDOWN_SECONDS_ON_SUCCESS = 90
@@ -262,4 +263,4 @@ WARMUP_SETS = {
   ]
 }.freeze
 
-WORKING_SETS_LABEL = 'Working sets'.freeze
+WORKING_SETS_LABEL = 'Working sets'
