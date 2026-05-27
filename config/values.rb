@@ -11,10 +11,12 @@ WORKOUT_B = [SQUAT, OVERHEAD_PRESS, DEADLIFT].freeze
 
 # Women's Olympic barbell: 15 kg
 # Men's Olympic barbell: 20 kg
-BAR_WEIGHT = 15
+# Override this in db/<username>_profile.json { "config" : { "BAR_WEIGHT" : ... } }
+$bar_weight = 20
 
-PLATES = {
-  0.25 => 8, # Should max this at 8
+# Override this in db/<username>_profile.json { "config" : { "PLATES" : ... } }
+$plates = {
+  0.25 => 0, # Should max this at 8
   1.25 => 4, # Should max this at 4
   2.5 => 4,  # Should max this at 4
   5 => 4,    # Should max this at 4
@@ -22,7 +24,7 @@ PLATES = {
   15 => 0,   # Should max this at 4
   20 => 2,   # Should max this at 20
   25 => 0    # Should max this at 20
-}.freeze
+}
 
 PLATE_COLOURS = {
   0.25 => :bright_red,
@@ -35,7 +37,9 @@ PLATE_COLOURS = {
   25 => :red
 }.freeze
 
-MINIMUM_INCREMENT = PLATES.keys.min * 2
+def minimum_increment()
+  $plates.keys.min * 2
+end
 
 # We don't need precise fractional plates for warmups, so this keeps things simple
 MINIMUM_WARMUP_INCREMENT = 5

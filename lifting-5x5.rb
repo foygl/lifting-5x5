@@ -11,32 +11,22 @@ require_relative 'lib/util'
 require 'io/console'
 require 'monitor'
 
-# Validate plate configuration
-raise 'Too many 0.25 kg plates' if PLATES[0.25] > 8
-raise 'Too many 1.25 kg plates' if PLATES[1.25] > 4
-raise 'Too many 2.5 kg plates' if PLATES[2.5] > 4
-raise 'Too many 5 kg plates' if PLATES[5] > 4
-raise 'Too many 10 kg plates' if PLATES[10] > 4
-raise 'Too many 15 kg plates' if PLATES[15] > 4
-raise 'Too many 20 kg plates' if PLATES[20] > 20
-raise 'Too many 25 kg plates' if PLATES[25] > 20
-
 PLATE_SEPARATOR = '│'
 SHOW_MINIMUM_PLATES = false
 
 def calculate_plates(weight)
-  if weight < BAR_WEIGHT
-    puts colourise("Weight must be greater than or equal to #{BAR_WEIGHT} kg.", :red)
+  if weight < $bar_weight
+    puts colourise("Weight must be greater than or equal to #{$bar_weight} kg.", :red)
     return nil
   end
 
   @plates_cache ||= {}
   return @plates_cache[weight] if @plates_cache.key?(weight)
 
-  remaining_weight = weight - BAR_WEIGHT
+  remaining_weight = weight - $bar_weight
   plates_needed = {}
 
-  PLATES.sort.reverse.each do |plate_weight, quantity|
+  $plates.sort.reverse.each do |plate_weight, quantity|
     break if remaining_weight <= 0
 
     plates_to_use = [quantity, 2 * (remaining_weight / (2 * plate_weight)).floor].min
@@ -55,7 +45,7 @@ end
 
 def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
   weight = (weight / minimum_increment).floor * minimum_increment
-  weight = [weight, BAR_WEIGHT].max
+  weight = [weight, $bar_weight].max
 
   while calculate_plates(weight) == nil || (max_weight && weight > max_weight)
     weight -= minimum_increment
@@ -73,7 +63,7 @@ def calculate_warmup_sets(exercise, target_weight, lifter)
     warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'], MINIMUM_WARMUP_INCREMENT, target_weight - MIN_WARMUP_WEIGHT_DIFFERENCE)
 
     # Skip warmup sets that are just the bar, unless it's the first set with no multiplier as the weight is too light to be useful
-    next if warmup_weight == BAR_WEIGHT && set['multiplier'] > 0
+    next if warmup_weight == $bar_weight && set['multiplier'] > 0
 
     {
       'lifter' => lifter,
@@ -89,10 +79,10 @@ end
 def calculate_workout(exercise, target_weight, buddy_target_weights = [])
   start_time = Time.now
 
-  target_weight = sanitise_weight_to_lift(target_weight, MINIMUM_INCREMENT)
+  target_weight = sanitise_weight_to_lift(target_weight, minimum_increment)
 
   buddy_target_weights.each_with_index do |buddys_target_weight, i|
-    buddy_target_weights[i] = sanitise_weight_to_lift(buddys_target_weight, MINIMUM_INCREMENT)
+    buddy_target_weights[i] = sanitise_weight_to_lift(buddys_target_weight, minimum_increment)
   end
 
   workout_sets = SETS[exercise]
@@ -107,7 +97,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
             }]
 
   # If the target weight is just the bar then there are no warmups and no plate changes so we can skip all the buddy calculations
-  return minimise_plate_changes(workout) if target_weight == BAR_WEIGHT
+  return minimise_plate_changes(workout) if target_weight == $bar_weight
 
   buddy_workouts = buddy_target_weights.map do |buddys_target_weight|
     calculate_warmup_sets(exercise, buddys_target_weight, :buddy) + [{
@@ -128,13 +118,13 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
     interleaved_workouts << workout_set unless workout_set.nil?
     buddy_workouts.each do |buddy_workout|
       buddy_workout_set = buddy_workout.find { |s| s['name'] == set_name }
-      interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == BAR_WEIGHT
+      interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == $bar_weight
     end
   end
   interleaved_workouts << workout.find { |s| s['name'] == WORKING_SETS_LABEL }
   buddy_workouts.each do |buddy_workout|
     buddy_workout_set = buddy_workout.find { |s| s['name'] == WORKING_SETS_LABEL }
-    interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == BAR_WEIGHT
+    interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == $bar_weight
   end
 
   interleaved_workouts.sort_by! { |s| [s['name'], s['weight']] }
@@ -162,19 +152,22 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
 end
 
 def display_bar_and_plates(title, plates)
-  bar_length = 8
+  bar_weight_label = " #{$bar_weight} kg "
+  bar_length = [9, bar_weight_label.length].max
 
   bar = colourise(' ' * bar_length, :grey, true)
   no_bar = ' ' * bar_length
+  bar_weight = colourise("#{' ' * ((bar_length - bar_weight_label.length) / 2.0).floor}#{bar_weight_label}#{' ' * ((bar_length - bar_weight_label.length) / 2.0).ceil}", :grey)
 
   plate_titles_display = plates.map { |plate| colourise("#{plate} kg", PLATE_COLOURS[plate]) }.join(PLATE_SEPARATOR)
   plates_display = plates.map { |plate| colourise(" " * (plate.to_s.length + 3), PLATE_COLOURS[plate], true) }.join(PLATE_SEPARATOR)
 
   puts "  │ #{title}:"
   puts "  │   #{no_bar}#{plate_titles_display}"
-  1.upto(3).each do |_|
+  1.upto(2).each do |_|
     puts "  │   #{no_bar}#{plates_display}"
   end
+  puts "  │   #{bar_weight}#{plates_display}"
   puts "  │   #{bar}#{plates_display}"
   1.upto(3).each do |_|
     puts "  │   #{no_bar}#{plates_display}"
@@ -198,6 +191,16 @@ if whoami.nil?
 end
 
 p = Persistence.new(whoami, date)
+
+# Validate plate configuration
+raise 'Too many 0.25 kg plates' if $plates[0.25] > 8
+raise 'Too many 1.25 kg plates' if $plates[1.25] > 4
+raise 'Too many 2.5 kg plates' if $plates[2.5] > 4
+raise 'Too many 5 kg plates' if $plates[5] > 4
+raise 'Too many 10 kg plates' if $plates[10] > 4
+raise 'Too many 15 kg plates' if $plates[15] > 4
+raise 'Too many 20 kg plates' if $plates[20] > 20
+raise 'Too many 25 kg plates' if $plates[25] > 20
 
 puts "Welcome #{whoami}. Here is your current progress:"
 
@@ -258,7 +261,7 @@ if p.workout_weights.empty?
       print "Enter #{person}'s target weight for #{exercise} (kg) [#{proposed_target_weight}]: "
       target_weight = gets.chomp
       target_weight = proposed_target_weight if target_weight.empty?
-      target_weight = sanitise_weight_to_lift(target_weight.to_f, MINIMUM_INCREMENT)
+      target_weight = sanitise_weight_to_lift(target_weight.to_f, minimum_increment)
 
       p.workout_weights[person.downcase] ||= {}
       p.workout_weights[person.downcase][exercise] = target_weight

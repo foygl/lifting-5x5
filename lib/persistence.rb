@@ -29,6 +29,23 @@ class Persistence
     get_workout_state
     @@profile_filename = profile_filename(@@lifter)
     get_profile_state
+
+    if @@profile_state.key?('config')
+      config = @@profile_state['config']
+      $bar_weight = config['BAR_WEIGHT'] if config.key?('BAR_WEIGHT')
+      if config.key?('PLATES')
+        $plates.keys.each { |k| $plates[k] = 0 }
+        config['PLATES'].each do |plate, count|
+          if $plates.key?(plate.to_f)
+            $plates[plate.to_f] = count
+          elsif $plates.key?(plate.to_i)
+            $plates[plate.to_i] = count
+          else
+            puts colourise("Warning: Ignoring unknown plate size #{plate} in profile config", :yellow)
+          end
+        end
+      end
+    end
   end
 
   def profile_filename(lifter)
