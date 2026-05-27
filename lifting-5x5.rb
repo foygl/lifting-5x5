@@ -15,18 +15,18 @@ PLATE_SEPARATOR = '│'
 SHOW_MINIMUM_PLATES = false
 
 def calculate_plates(weight)
-  if weight < $bar_weight
-    puts colourise("Weight must be greater than or equal to #{$bar_weight} kg.", :red)
+  if weight < $bar_weight[$unit]
+    puts colourise("Weight must be greater than or equal to #{$bar_weight[$unit]} #{$unit}.", :red)
     return nil
   end
 
   @plates_cache ||= {}
   return @plates_cache[weight] if @plates_cache.key?(weight)
 
-  remaining_weight = weight - $bar_weight
+  remaining_weight = weight - $bar_weight[$unit]
   plates_needed = {}
 
-  $plates.sort.reverse.each do |plate_weight, quantity|
+  $plates[$unit].sort.reverse.each do |plate_weight, quantity|
     break if remaining_weight <= 0
 
     plates_to_use = [quantity, 2 * (remaining_weight / (2 * plate_weight)).floor].min
@@ -44,8 +44,8 @@ def calculate_plates(weight)
 end
 
 def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
-  weight = (weight / minimum_increment).floor * minimum_increment
-  weight = [weight, $bar_weight].max
+  weight = ((weight - $bar_weight[$unit]) / minimum_increment).floor * minimum_increment + $bar_weight[$unit]
+  weight = [weight, $bar_weight[$unit]].max
 
   while calculate_plates(weight) == nil || (max_weight && weight > max_weight)
     weight -= minimum_increment
@@ -55,15 +55,15 @@ def sanitise_weight_to_lift(weight, minimum_increment, max_weight = nil)
 end
 
 def calculate_warmup_sets(exercise, target_weight, lifter)
-  return [] if target_weight < ADD_WARMUPS_THRESHOLD
+  return [] if target_weight < ADD_WARMUPS_THRESHOLD[$unit]
 
   warmup_sets = WARMUP_SETS[exercise]
 
   warmup_sets.map do |set|
-    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'], MINIMUM_WARMUP_INCREMENT, target_weight - MIN_WARMUP_WEIGHT_DIFFERENCE)
+    warmup_weight = sanitise_weight_to_lift(target_weight * set['multiplier'], MINIMUM_WARMUP_INCREMENT[$unit], target_weight - MIN_WARMUP_WEIGHT_DIFFERENCE[$unit])
 
     # Skip warmup sets that are just the bar, unless it's the first set with no multiplier as the weight is too light to be useful
-    next if warmup_weight == $bar_weight && set['multiplier'] > 0
+    next if warmup_weight == $bar_weight[$unit] && set['multiplier'] > 0
 
     {
       'lifter' => lifter,
@@ -97,7 +97,7 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
             }]
 
   # If the target weight is just the bar then there are no warmups and no plate changes so we can skip all the buddy calculations
-  return minimise_plate_changes(workout) if target_weight == $bar_weight
+  return minimise_plate_changes(workout) if target_weight == $bar_weight[$unit]
 
   buddy_workouts = buddy_target_weights.map do |buddys_target_weight|
     calculate_warmup_sets(exercise, buddys_target_weight, :buddy) + [{
@@ -118,13 +118,13 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
     interleaved_workouts << workout_set unless workout_set.nil?
     buddy_workouts.each do |buddy_workout|
       buddy_workout_set = buddy_workout.find { |s| s['name'] == set_name }
-      interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == $bar_weight
+      interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == $bar_weight[$unit]
     end
   end
   interleaved_workouts << workout.find { |s| s['name'] == WORKING_SETS_LABEL }
   buddy_workouts.each do |buddy_workout|
     buddy_workout_set = buddy_workout.find { |s| s['name'] == WORKING_SETS_LABEL }
-    interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == $bar_weight
+    interleaved_workouts << buddy_workout_set unless buddy_workout_set.nil? || buddy_workout_set['weight'] == $bar_weight[$unit]
   end
 
   interleaved_workouts.sort_by! { |s| [s['name'], s['weight']] }
@@ -152,15 +152,15 @@ def calculate_workout(exercise, target_weight, buddy_target_weights = [])
 end
 
 def display_bar_and_plates(title, plates)
-  bar_weight_label = " #{$bar_weight} kg "
+  bar_weight_label = " #{$bar_weight[$unit]} #{$unit} "
   bar_length = [9, bar_weight_label.length].max
 
   bar = colourise(' ' * bar_length, :grey, true)
   no_bar = ' ' * bar_length
   bar_weight = colourise("#{' ' * ((bar_length - bar_weight_label.length) / 2.0).floor}#{bar_weight_label}#{' ' * ((bar_length - bar_weight_label.length) / 2.0).ceil}", :grey)
 
-  plate_titles_display = plates.map { |plate| colourise("#{plate} kg", PLATE_COLOURS[plate]) }.join(PLATE_SEPARATOR)
-  plates_display = plates.map { |plate| colourise(" " * (plate.to_s.length + 3), PLATE_COLOURS[plate], true) }.join(PLATE_SEPARATOR)
+  plate_titles_display = plates.map { |plate| colourise("#{plate} #{$unit}", PLATE_COLOURS[$unit][plate]) }.join(PLATE_SEPARATOR)
+  plates_display = plates.map { |plate| colourise(" " * (plate.to_s.length + 1 + $unit.length), PLATE_COLOURS[$unit][plate], true) }.join(PLATE_SEPARATOR)
 
   puts "  │ #{title}:"
   puts "  │   #{no_bar}#{plate_titles_display}"
@@ -192,15 +192,23 @@ end
 
 p = Persistence.new(whoami, date)
 
-# Validate plate configuration
-raise 'Too many 0.25 kg plates' if $plates[0.25] > 8
-raise 'Too many 1.25 kg plates' if $plates[1.25] > 4
-raise 'Too many 2.5 kg plates' if $plates[2.5] > 4
-raise 'Too many 5 kg plates' if $plates[5] > 4
-raise 'Too many 10 kg plates' if $plates[10] > 4
-raise 'Too many 15 kg plates' if $plates[15] > 4
-raise 'Too many 20 kg plates' if $plates[20] > 20
-raise 'Too many 25 kg plates' if $plates[25] > 20
+# Validate plate configuration (kg)
+raise 'Too many 0.25 kg plates' if $plates['kg'][0.25] > 8
+raise 'Too many 1.25 kg plates' if $plates['kg'][1.25] > 4
+raise 'Too many 2.5 kg plates' if $plates['kg'][2.5] > 4
+raise 'Too many 5 kg plates' if $plates['kg'][5] > 4
+raise 'Too many 10 kg plates' if $plates['kg'][10] > 4
+raise 'Too many 15 kg plates' if $plates['kg'][15] > 4
+raise 'Too many 20 kg plates' if $plates['kg'][20] > 20
+raise 'Too many 25 kg plates' if $plates['kg'][25] > 20
+# Validate plate configuration (lbs)
+raise 'Too many 2.5 lbs plates' if $plates['lbs'][2.5] > 4
+raise 'Too many 5 lbs plates' if $plates['lbs'][5] > 4
+raise 'Too many 10 lbs plates' if $plates['lbs'][10] > 4
+raise 'Too many 25 lbs plates' if $plates['lbs'][25] > 4
+raise 'Too many 35 lbs plates' if $plates['lbs'][35] > 4
+raise 'Too many 45 lbs plates' if $plates['lbs'][45] > 20
+raise 'Too many 55 lbs plates' if $plates['lbs'][55] > 20
 
 puts "Welcome #{whoami}. Here is your current progress:"
 
@@ -258,7 +266,7 @@ if p.workout_weights.empty?
     for person in [whoami] + p.buddies
       proposed_target_weight = p.target_weight(exercise, person)
 :qa
-      print "Enter #{person}'s target weight for #{exercise} (kg) [#{proposed_target_weight}]: "
+      print "Enter #{person}'s target weight for #{exercise} (#{$unit}) [#{proposed_target_weight}]: "
       target_weight = gets.chomp
       target_weight = proposed_target_weight if target_weight.empty?
       target_weight = sanitise_weight_to_lift(target_weight.to_f, minimum_increment)
@@ -274,13 +282,13 @@ p.workout.each do |exercise|
   target_weight = p.workout_weights[whoami.downcase][exercise]
 
   puts
-  puts "Exercise: #{exercise} at #{target_weight} kg"
+  puts "Exercise: #{exercise} at #{target_weight} #{$unit}"
 
   p.sets[exercise] ||= calculate_workout(exercise, target_weight, p.buddies.map { |b| p.workout_weights[b.downcase][exercise] })
 
   puts "  ┌────────────── Exercise Summary ──────────────┐"
   p.sets[exercise].each do |set|
-    set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} kg"
+    set['summary'] = "#{set['name']}: #{colourise("#{set['sets']} sets", :green)} of #{colourise("#{set['reps']} reps", :yellow)} at #{set['weight']} #{$unit}"
     puts "  │ #{set['summary']}#{" " * (45 - decolourise(set['summary']).length)}│"
   end
   puts "  └──────────────────────────────────────────────┘"
@@ -408,7 +416,7 @@ p.successful_reps.each_with_index do |exercise_results, i|
   puts "  │ #{exercise}:#{" " * (box_right_padding - exercise.length - 1)}│"
   set_groups.each do |set_group, sets|
     weight = p.sets[exercise].find { |s| s['name'] == set_group }['weight']
-    set_group_formatted = "  #{colourise("#{set_group} (#{weight} kg):", set_group == WORKING_SETS_LABEL ? :none : :grey)} #{format_set_completion_results(sets.map { |_, r| r })}"
+    set_group_formatted = "  #{colourise("#{set_group} (#{weight} #{$unit}):", set_group == WORKING_SETS_LABEL ? :none : :grey)} #{format_set_completion_results(sets.map { |_, r| r })}"
     puts "  │ #{set_group_formatted}#{" " * (box_right_padding - decolourise(set_group_formatted).length)}│"
   end
 end

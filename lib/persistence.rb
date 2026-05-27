@@ -32,14 +32,15 @@ class Persistence
 
     if @@profile_state.key?('config')
       config = @@profile_state['config']
-      $bar_weight = config['BAR_WEIGHT'] if config.key?('BAR_WEIGHT')
+      $unit = config['UNIT'] if config.key?('UNIT')
+      $bar_weight[$unit] = config['BAR_WEIGHT'] if config.key?('BAR_WEIGHT')
       if config.key?('PLATES')
-        $plates.keys.each { |k| $plates[k] = 0 }
+        $plates[$unit].keys.each { |k| $plates[$unit][k] = 0 }
         config['PLATES'].each do |plate, count|
-          if $plates.key?(plate.to_f)
-            $plates[plate.to_f] = count
-          elsif $plates.key?(plate.to_i)
-            $plates[plate.to_i] = count
+          if $plates[$unit].key?(plate.to_f)
+            $plates[$unit][plate.to_f] = count
+          elsif $plates[$unit].key?(plate.to_i)
+            $plates[$unit][plate.to_i] = count
           else
             puts colourise("Warning: Ignoring unknown plate size #{plate} in profile config", :yellow)
           end
@@ -96,7 +97,7 @@ class Persistence
     c = current_progress(profile, exercise)
 
     if c.key?('successes') && c['successes'] >= p['successes_before_increment']
-      puts colourise("Incrementing weight for #{exercise} by #{p['increment']} kg", :grey)
+      puts colourise("Incrementing weight for #{exercise} by #{p['increment']} #{$unit}", :grey)
       c['last_weight'] + p['increment']
     elsif c.key?('failures') && c['failures'] >= p['failures_before_deload']
       puts colourise("Decrementing weight for #{exercise} by #{p['deload_percentage']}%", :grey)

@@ -43,8 +43,8 @@ end
 
 def calculate_all_plate_combinations(weight)
   # For this calculation, consider just half the weight, since the same plates will be on both sides of the bar
-  plate_weight = (weight - $bar_weight).to_f / 2.0
-  @available_plates ||= $plates.map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
+  plate_weight = (weight - $bar_weight[$unit]).to_f / 2.0
+  @available_plates ||= $plates[$unit].map { |weight, count| [weight] * (count / 2) }.flatten.sort.reverse
 
   combinations = calculate_plate_combinations(@available_plates, plate_weight)
 

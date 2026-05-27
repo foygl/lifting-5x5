@@ -58,7 +58,7 @@ def print_progress_charts(person)
     puts
     puts "  #{exercise} progress over the last #{DAYS_TO_SHOW} days:"
     exercise_workouts.sort_by { |date, _| date }.each do |date, workout|
-      weight_str = '#' * (workout['weight'] / weight_per_character).round + " #{workout['weight']} kg"
+      weight_str = '#' * (workout['weight'] / weight_per_character).round + " #{workout['weight']} #{$unit}"
       weight_str = colourise(weight_str, SUCCESS_LEVELS[workout['success']])
       puts "  │ #{date.iso8601}: #{weight_str}"
     end

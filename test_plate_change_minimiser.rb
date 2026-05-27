@@ -13,17 +13,19 @@ require_relative 'lib/plate_change_minimiser'
 
 DEBUG = true
 
-$bar_weight = 15
+$bar_weight = { "kg" => 15 }
 $plates = {
-  0.25 => 8,
-  1.25 => 4,
-  2.5 => 4,
-  5 => 4,
-  10 => 4,
-  15 => 0,
-  20 => 2,
-  25 => 0
-}
+            "kg" => {
+              0.25 => 8,
+              1.25 => 4,
+              2.5 => 4,
+              5 => 4,
+              10 => 4,
+              15 => 0,
+              20 => 2,
+              25 => 0
+            }
+          }
 
 test1 = [{"weight" => 15.0},
          {"weight" => 40.0},
