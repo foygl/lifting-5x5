@@ -336,7 +336,7 @@ p.workout.each do |exercise|
           begin
             countdown = cooldown_time
             while countdown > 0
-              print "  │ Wait #{colourise(countdown.floor, :bright_white)} seconds before next set (ctrl+c to interrupt)\033[0K\r"
+              print "  │ Wait #{colourise(countdown.floor, :bright_white)} seconds before next set (ctrl+c to interrupt, + or - to add or subtract 30s)\033[0K\r"
               sleep(0.1)
               countdown -= 0.1
               # Clear the contents of the current line
