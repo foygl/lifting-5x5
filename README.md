@@ -21,3 +21,4 @@ I kept it as core Ruby with no external dependencies, so it should be trivial to
 - It may be incomplete or more complex to use as you advance on the program
 - Where testing exists it is pretty basic and in no way covers all edge cases
 - This script is really a prototype for an app that I may never build!
+- I'm sorry for disappointing you RuboCop 🙈
