@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'date'
+require 'fileutils'
 require 'json'
 
 require_relative '../config/values'
@@ -26,8 +27,10 @@ class Persistence
     end
 
     @@workout_filename = "#{@@directory}/#{@@lifter}_#{@@date.iso8601}.json"
+    @@workout_backup_filename = "#{@@directory}/.#{@@lifter}_#{@@date.iso8601}.json.last"
     get_workout_state
     @@profile_filename = profile_filename(@@lifter)
+    @@profile_backup_filename = profile_backup_filename(@@lifter)
     get_profile_state
 
     if @@profile_state.key?('config')
@@ -51,6 +54,10 @@ class Persistence
 
   def profile_filename(lifter)
     "#{@@directory}/#{lifter}_profile.json"
+  end
+
+  def profile_backup_filename(lifter)
+    "#{@@directory}/.#{lifter}_profile.json.last"
   end
 
   def buddies
@@ -189,6 +196,8 @@ class Persistence
   def flush_workout_state
     Dir.mkdir(@@directory) unless File.exist?(@@directory)
 
+    FileUtils.cp(@@workout_filename, @@workout_backup_filename) if File.exist? (@@workout_filename)
+
     File.open(@@workout_filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
       f.write @@workout_state.to_json
     end
@@ -196,6 +205,8 @@ class Persistence
 
   def flush_profile_state
     Dir.mkdir(@@directory) unless File.exist?(@@directory)
+
+    FileUtils.cp(@@profile_filename, @@profile_backup_filename) if File.exist? (@@profile_filename)
 
     File.open(@@profile_filename, File::CREAT|File::TRUNC|File::RDWR) do |f|
       f.write JSON.pretty_generate(@@profile_state)
