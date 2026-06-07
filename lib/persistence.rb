@@ -84,6 +84,13 @@ class Persistence
     @@workout_state['successful_reps'] ||= {}
   end
 
+  def previous_pr(exercise)
+    if @@profile_state.key?('previous_pr')
+      return @@profile_state['previous_pr'][exercise] if @@profile_state['previous_pr'].key?(exercise)
+    end
+    {}
+  end
+
   def target_weight(exercise, lifter)
     if lifter.downcase == @@lifter
       target_weight_from_profile(@@profile_state, exercise)

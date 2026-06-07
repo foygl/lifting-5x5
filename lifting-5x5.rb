@@ -212,7 +212,7 @@ raise 'Too many 55 lbs plates' if $plates['lbs'][55] > 20
 
 puts "Welcome #{whoami}. Here is your current progress:"
 
-print_progress_charts(whoami)
+print_progress_charts(whoami, p)
 puts
 
 if p.buddies.empty? && p.workout.nil?
@@ -424,4 +424,4 @@ puts "  └───────────────────────
 
 p.flush_profile_state
 
-print_progress_charts(whoami)
+print_progress_charts(whoami, p)

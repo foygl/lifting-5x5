@@ -10,10 +10,11 @@ DIRECTORY = 'db'
 SUCCESS_LEVELS = {
   'success' => :green,
   'some_failed' => :yellow,
-  'all_failed' => :red
+  'all_failed' => :red,
+  'previous_pr' => :grey
 }.freeze
 
-def print_progress_charts(person)
+def print_progress_charts(person, persistence)
   person = person.downcase
 
   # Workout data structure: { exercise => { date => { 'weight' => weight, 'success' => SUCCESS_LEVELS } } }
@@ -47,6 +48,14 @@ def print_progress_charts(person)
                          'all_failed'
                        end
         }
+
+        previous_pr = persistence.previous_pr(exercise)
+        if previous_pr.key?('date') && previous_pr.key?('weight')
+          workouts[exercise][Date.iso8601(previous_pr['date'])] ||= {
+            'weight' => previous_pr['weight'].to_f,
+            'success' => 'previous_pr'
+          }
+        end
       end
     end
   end
